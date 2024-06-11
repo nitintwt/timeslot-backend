@@ -1,0 +1,21 @@
+{
+  "name": "timeslot-backend",
+  "version": "1.0.0",
+  "description": "A tool for freelancers",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js"
+  },
+  "keywords": [
+    "node",
+    "express"
+  ],
+  "author": "Nitin Singh",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.3",
+    "prettier": "^3.3.2"
+  }
+}
