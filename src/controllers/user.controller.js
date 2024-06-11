@@ -1,7 +1,7 @@
-import { User } from "../models/user.model";
-import { ApiError } from "../utils/ApiError";
-import { ApiResponse } from "../utils/ApiResponse";
-import { asyncHandler } from "../utils/asyncHandler";
+import { User } from "../models/user.model.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 const registerUser = asyncHandler( async (req , res)=>{
   const {fullName , email}= req.body
@@ -10,7 +10,9 @@ const registerUser = asyncHandler( async (req , res)=>{
   const existedUser = await User.findOne({email})
 
   if(existedUser){
-    throw new ApiResponse(200 , existedUser , "User already exists")
+    return res.status(201).json(
+      new ApiResponse(200 , existedUser , "User Already exists")
+    )
   }
 
   // saving in db
