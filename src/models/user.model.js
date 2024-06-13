@@ -11,7 +11,23 @@ const userSchema = new Schema(
       type : String,
       required: true,
       unique:true,
-    }
+    },
+    paidUser:{
+      type:Boolean,
+      default: false,
+    },
+    slots: [
+      {
+        type: Schema.Types.ObjectId,
+        ref:'Slot'
+      }
+    ],
+    customers:[
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Customer'
+      }
+    ]
   },
   {
     timestamps: true
