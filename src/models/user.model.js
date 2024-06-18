@@ -16,6 +16,11 @@ const userSchema = new Schema(
       type:Boolean,
       default: false,
     },
+    stripeAccountId:{
+      type : String,
+      default: null,
+      unique:true,
+    },
     slots: [
       {
         type: Schema.Types.ObjectId,

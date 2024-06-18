@@ -13,7 +13,9 @@ app.use(express.urlencoded({extended: true , limit:"16kb"}))   // setting a limi
 app.use(express.static("public"))  //pubic folder to save files
 
 import userRouter from './routes/user.routes.js'
+import slotRouter from './routes/slot.routes.js'
 
 app.use("/api/v1/users" , userRouter)
+app.use("/api/v1/slot" , slotRouter)
 
 export {app}

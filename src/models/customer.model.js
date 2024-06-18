@@ -14,6 +14,9 @@ const customerSchema = new Schema(
       tyepe: Schema.Types.ObjectId,
       ref: 'Slot'
     }
+  },
+  {
+    timestamps: true,
   }
 )
 

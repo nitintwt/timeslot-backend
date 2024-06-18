@@ -20,12 +20,18 @@ const slotSchema = new Schema(
     },
     paid :{
       type: Boolean,
-      required: true,
       default: false,
     },
     price:{
       type: Number,
+    },
+    booked:{
+      type: Boolean,
+      default: false,
     }
+  },
+  {
+    timestamps: true
   }
 )
 
