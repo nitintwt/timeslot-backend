@@ -1,5 +1,4 @@
 import {Slot} from '../models/slot.model.js'
-import { z} from 'zod'
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -37,9 +36,30 @@ const createSlot = asyncHandler( async(req , res)=>{
       new ApiResponse(201, createdSlots, "Slot created Successfully")
     )
   } catch (error) {
-    throw new ApiError(500, error.message, "Error while saving slots in DB")
+    throw new ApiError(500, error, "Error while saving slots in DB")
   }
 
 })
 
-export {createSlot} 
+const getSlots = asyncHandler (async (req , res)=>{
+  const {date , email}= req.body
+
+  const user = await User.findOne({email})
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  try {
+    const slots = await Slot.find({creator: user._id , date})
+
+    return res.status(201).json(
+      new ApiResponse(201 , slots , "Slots fethced successfully")
+    )
+    
+  } catch (error) {
+    throw new ApiError(501 ,error ,  "Something went wrong while fetching slots")
+  }
+})
+
+
+export {createSlot , getSlots} 
