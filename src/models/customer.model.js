@@ -3,7 +3,7 @@ import mongoose , {Schema} from "mongoose";
 const customerSchema = new Schema(
   {
     customerEmail:{
-      tyepe: String,
+      type: String,
       required: true
     },
     customerName :{
@@ -11,7 +11,7 @@ const customerSchema = new Schema(
       required: true,
     },
     slot:{
-      tyepe: Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'Slot'
     }
   },

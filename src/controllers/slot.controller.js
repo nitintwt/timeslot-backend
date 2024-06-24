@@ -42,12 +42,13 @@ const createSlot = asyncHandler( async(req , res)=>{
 })
 
 const getSlots = asyncHandler (async (req , res)=>{
-  const {date , email}= req.body
+  const {date , email}= req.query
 
-  const user = await User.findOne({email})
+  const user = await User.findOne({email:email})
   if (!user) {
     throw new ApiError(404, 'User not found');
   }
+
 
   try {
     const slots = await Slot.find({creator: user._id , date})
