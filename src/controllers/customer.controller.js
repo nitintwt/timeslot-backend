@@ -37,6 +37,8 @@ const sendEmail = asyncHandler (async (req, res)=>{
 
   const slot = await Slot.findById(slotId)
 
+  const user = await User.findById(slot.creator)
+
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth:{
@@ -49,7 +51,7 @@ const sendEmail = asyncHandler (async (req, res)=>{
     from:process.env.EMAIL_USER,
     to: clientEmail,
     Subject : "Testing",
-    text: `Hello ${clientName}. This email is regarding your scheduled meeting with. The meeting is from ${slot.startTime} to ${slot.endTime} on ${slot.date}. Below we have provided the link to the meeting.`
+    text: `Hello ${clientName}. This email is regarding your scheduled meeting with ${user.fullName}. The meeting is from ${slot.startTime} to ${slot.endTime} on ${slot.date}. Below we have provided the link to the meeting.`
   }
 
   transporter.sendMail(mailConfigs , function (error , info){

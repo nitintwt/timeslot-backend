@@ -34,9 +34,9 @@ const registerUser = asyncHandler( async (req , res)=>{
 })
 
 const getUserDetails = asyncHandler (async (req , res)=>{
-  const {email}= req.query
+  const {userDbId}= req.query
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findById(userDbId)
     if (!user) {
       return res.status(404).json(new ApiResponse(404, null, "User not found"));
     }
@@ -47,6 +47,32 @@ const getUserDetails = asyncHandler (async (req , res)=>{
   }
 })
 
-export {registerUser , getUserDetails}
+const setUsername = asyncHandler (async (req , res)=>{
+  const { username , userDbId}= req.body
+
+  const user = await User.findById(userDbId)
+  if(!user){
+    throw new ApiError (404 , "User not found")
+  }
+  const uniqueUserName = await User.findOne({userName:username})
+
+  if (uniqueUserName){
+    return res.status(409).json(
+      new ApiResponse(409 , "username already exists")
+    )
+  } else {
+    try {
+      user.userName = username
+      await user.save()
+      return res.status(200).json(
+        new ApiResponse(200 , "username registered successfully")
+      )
+    } catch (error) {
+      throw new ApiError (500 , error , "Something went wrong while submitting your username. Try again.")
+    }
+  }
+})
+
+export {registerUser , getUserDetails , setUsername}
 
 

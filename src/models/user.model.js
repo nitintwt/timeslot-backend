@@ -5,12 +5,18 @@ const userSchema = new Schema(
     fullName:{
       type : String,
       required: true,
-      index: true
+    },
+    userName:{
+      type : String,
+      unique: true,
+      default: null,
+      index: true    // used with field , which will be used to search the user . optimize the search
     },
     email:{
       type : String,
       required: true,
       unique:true,
+      index: true
     },
     paidUser:{
       type:Boolean,
@@ -19,7 +25,6 @@ const userSchema = new Schema(
     stripeAccountId:{
       type : String,
       default: null,
-      unique:true,
     },
     slots: [
       {
