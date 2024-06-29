@@ -7,7 +7,7 @@ import nodemailer from 'nodemailer'
 import { User } from "../models/user.model.js";
 
 const bookSlot = asyncHandler(async(req , res)=>{
-  const {email , name , slotId}= req.body
+  const {email , name , reason ,  slotId}= req.body
   
   const slot = await Slot.findById(slotId)
 
@@ -21,7 +21,8 @@ const bookSlot = asyncHandler(async(req , res)=>{
     const saveCustomerData = await Customer.create({
       customerEmail: email,
       customerName: name,
-      slot: slotId
+      slot: slotId,
+      reasonForMeet: reason,
     })
 
     return res.status(201).json(
@@ -63,6 +64,11 @@ const sendEmail = asyncHandler (async (req, res)=>{
       )
     }
   })
+
+})
+
+const getCustomersData = asyncHandler(async (req , res)=>{
+  
 
 })
 

@@ -10,7 +10,7 @@ const userSchema = new Schema(
       type : String,
       unique: true,
       default: null,
-      index: true    // used with field , which will be used to search the user . optimize the search
+      index: true    //optimize the search
     },
     email:{
       type : String,

@@ -10,10 +10,13 @@ const customerSchema = new Schema(
       type: String,
       required: true,
     },
+    reasonForMeet:{
+      type: String,
+    },
     slot:{
       type: Schema.Types.ObjectId,
       ref: 'Slot'
-    }
+    },
   },
   {
     timestamps: true,

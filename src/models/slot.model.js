@@ -4,11 +4,13 @@ const slotSchema = new Schema(
   {
     creator:{
       type: Schema.Types.ObjectId,
-      ref: 'User'
+      ref: 'User',
+      index: true,
     },
     date:{
-      type: String,
-      required: true
+      type: Date,
+      required: true,
+      index: true
     },
     startTime:{
       type: String,
