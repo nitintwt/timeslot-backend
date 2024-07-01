@@ -17,6 +17,11 @@ const customerSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'Slot'
     },
+    slotCreator:{
+      type: String,
+      require:true,
+      index:true,
+    }
   },
   {
     timestamps: true,

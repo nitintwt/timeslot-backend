@@ -15,9 +15,11 @@ app.use(express.static("public"))  //pubic folder to save files
 import userRouter from './routes/user.routes.js'
 import slotRouter from './routes/slot.routes.js'
 import customerRouter from './routes/customer.routes.js'
+import googleRouter from './routes/google.routes.js'
 
 app.use("/api/v1/users" , userRouter)
 app.use("/api/v1/slot" , slotRouter)
 app.use("/api/v1/customer" , customerRouter)
+app.use("/api/v1/google" , googleRouter)
 
 export {app}

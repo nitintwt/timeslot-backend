@@ -68,8 +68,16 @@ const sendEmail = asyncHandler (async (req, res)=>{
 })
 
 const getCustomersData = asyncHandler(async (req , res)=>{
-  
+  const {username}= req.body
 
+  try {
+    const customers = await Customer.find({slotCreator:username})
+    return res.status(200).json(
+      new ApiResponse(200, customers , "Customers data fetched successfully")
+    )
+  } catch (error) {
+    throw new ApiError(500 , error , "Something went wrong while fetching customers data")
+  }
 })
 
-export  {bookSlot , sendEmail}
+export  {bookSlot , sendEmail , getCustomersData}
