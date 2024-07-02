@@ -34,7 +34,7 @@ const bookSlot = asyncHandler(async(req , res)=>{
 })
 
 const sendEmail = asyncHandler (async (req, res)=>{
-  const {clientEmail , clientName , slotId}= req.body
+  const {clientEmail , clientName , slotId , meetLink}= req.body
 
   const slot = await Slot.findById(slotId)
 
@@ -52,7 +52,7 @@ const sendEmail = asyncHandler (async (req, res)=>{
     from:process.env.EMAIL_USER,
     to: clientEmail,
     Subject : "Testing",
-    text: `Hello ${clientName}. This email is regarding your scheduled meeting with ${user.fullName}. The meeting is from ${slot.startTime} to ${slot.endTime} on ${slot.date}. Below we have provided the link to the meeting.`
+    text: `Hello ${clientName}. This email is regarding your scheduled meeting with ${user.fullName}. The meeting is from ${slot.startTime} to ${slot.endTime} on ${slot.date}. The link to the meeting is :-  ${meetLink}.`
   }
 
   transporter.sendMail(mailConfigs , function (error , info){

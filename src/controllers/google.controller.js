@@ -3,6 +3,16 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {v4 as uuid} from 'uuid'
+import { Slot } from "../models/slot.model.js";
+import { User } from "../models/user.model.js";
+
+/* THE FLOW OF GOOGLE CALENDER INTEGRATION :-
+   I have made an project in google developer console , and from this i have got some keys.
+   The user will hit the calender integration component , first he will be directed to autheticate using OAuth , and then he will be asked to give my project , TimeSlot permission to edit there google calender.
+   After the user gave permission , he will be redirected to our product page with an authorization code attached.
+   we use this authorization code to request an access token from google OAuth
+   And with each event post request we send this access token with event details like start time , end time , attendes , meet link.
+*/
 
 /*
   I am declaring oauth2Client in each scope , and not declaring it globally because global variable can cause issue when multiple requests are 
@@ -28,7 +38,7 @@ const googleAuth = asyncHandler (async (req , res)=>{
 })
 
 const googleLogin= asyncHandler(async (req , res)=>{
-   const tokenCode = req.query.code
+   const code = req.query.code
 
    const oauth2Client = new google.auth.OAuth2(
     process.env.CLIENT_ID,
@@ -36,43 +46,62 @@ const googleLogin= asyncHandler(async (req , res)=>{
     process.env.REDIRECT_URL
    )
 
+   const options = {
+    httpOnly : true,
+    secure: true,
+  }
+
    try {
-    const {tokens} = await oauth2Client.getToken(tokenCode)
+    const {tokens} = await oauth2Client.getToken(code)
     oauth2Client.setCredentials(tokens);
-    return res.status(200).json(
-      new ApiResponse (200 , 'Login successfull!!')
-    )
+    return res.status(200)
+    .cookie("tokens", tokens , options)
+    .json(new ApiResponse (200 , tokens, 'Login successfull!!'))
    } catch (error) {
     throw new ApiError(500 , error , "Something went wrong. Try login again")
    }
 })
 
 const scheduleEvent = asyncHandler (async ( req , res)=>{
+  const { userName , client , clientEmail , date , timeSlot , meetReason}= req.body
+  const tokens= req.cookies.tokens
+
   const oauth2Client = new google.auth.OAuth2(
     process.env.CLIENT_ID,
     process.env.CLIENT_SECRET,
     process.env.REDIRECT_URL
    )
+   oauth2Client.setCredentials(tokens);
 
   const calendar = google.calendar({
     version: "v3",
     auth:process.env.GOOGLE_CALENDER_API_KEY
   })
 
+  function formatDate (date){
+    const [day , month , year]=date.split("/")
+    const formattedDate = `${year}-${month}-${day}`;
+    return formattedDate
+  }
+
+  const user = await User.findOne({userName: userName})
+  const slot = await Slot.findById(timeSlot)
+
   try {
-    await calendar.events.insert({
-      calendarId:"Primary",
+    const calenderEvent = await calendar.events.insert({
+      calendarId:"primary",
       auth:oauth2Client,
       conferenceDataVersion:1,
       requestBody:{
-        summary:"Test kar raha hu",
-        description:"bola na test kar raha hu",
+        summary:`Google meet of ${user.fullName} and ${client}`,
+        description:`Reason of meet as described by ${client}:- ${meetReason}`,
         start:{
-          dateTime:hdhhd, // put client meet time here
-          timeZone:'Asia/Kolkata'
+          dateTime: `${formatDate(date)}T${slot.startTime}:00+05:30`,
+          timeZone:'Asia/Kolkata',
+          
         },
         end:{
-          dateTime:jjdhd, // put client meet time here
+          dateTime: `${formatDate(date)}T${slot.endTime}:00+05:30`,
           timeZone:"Asia/Kolkata"
         },
         conferenceData:{
@@ -80,13 +109,14 @@ const scheduleEvent = asyncHandler (async ( req , res)=>{
             requestId: uuid(),
           }
         },
-        attendees:[{
-          email:""
-        }]
+        attendees:[
+          { email: user.email },
+          { email: clientEmail }
+        ]
       }
     })
     return res.status(200).json(
-      new ApiResponse(200 , "Meeting scheduled successfully. Check your google calender")
+      new ApiResponse(200 , calenderEvent , "Meeting scheduled successfully. Check your google calender")
     )
   } catch (error) {
     throw new ApiError ( 500 , error , "Something went wrong while scheduling meeting. Please try again")
