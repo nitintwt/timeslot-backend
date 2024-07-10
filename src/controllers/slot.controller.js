@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from '../models/user.model.js';
+import { Customer } from '../models/customer.model.js';
 
 
 const createSlot = asyncHandler( async(req , res)=>{
@@ -61,5 +62,34 @@ const getSlots = asyncHandler (async (req , res)=>{
   }
 })
 
+const cancelSlotBooking = asyncHandler (async (req , res)=>{
+  const {slotId , customerEmail} = req.body
 
-export {createSlot , getSlots} 
+
+
+  try {
+    await Slot.findByIdAndUpdate(slotId , 
+      {
+        $set:{booked:false}
+      },
+      {
+        new:true
+      }
+    )
+    await Customer.findOneAndDelete({customerEmail: customerEmail}, 
+      {
+        
+      }
+    )
+
+    /* Todo : Send email to client about slot cancelation. Make a util for sending mails */
+    return res.status(200).json(
+      new ApiResponse ( 200 , "Booking canceled successfully")
+    )
+  } catch (error) {
+    throw new ApiError ( 500 , error , "Something went wrong while canceling the booking. Please try again")
+  }
+})
+
+
+export {createSlot , getSlots , cancelSlotBooking} 
