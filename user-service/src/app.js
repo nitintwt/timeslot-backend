@@ -15,13 +15,11 @@ app.use(cookieParser())  // for crud operations on user's browser cookies
 
 import userRouter from './routes/user.routes.js'
 import slotRouter from './routes/slot.routes.js'
-import customerRouter from './routes/customer.routes.js'
 import googleRouter from './routes/google.routes.js'
 import cookieParser from 'cookie-parser'
 
 app.use("/api/v1/users" , userRouter)
 app.use("/api/v1/slot" , slotRouter)
-app.use("/api/v1/customer" , customerRouter)
 app.use("/api/v1/google" , googleRouter)
 
 export {app}
