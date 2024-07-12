@@ -4,6 +4,7 @@ import { User } from "../models/user.model.js";
 import { asyncHandler } from "../../../common/utils/asyncHandler.js";
 import { ApiResponse } from "../../../common/utils/ApiResponse.js";
 import { ApiError } from "../../../common/utils/ApiError.js";
+import client from "../Client.js";
 
 const registerUser = asyncHandler( async (req , res)=>{
   const {fullName , email}= req.body
@@ -37,15 +38,24 @@ const registerUser = asyncHandler( async (req , res)=>{
 
 const getUserDetails = asyncHandler (async (req , res)=>{
   const {userDbId}= req.query
-  try {
-    const user = await User.findById(userDbId)
-    if (!user) {
-      return res.status(404).json(new ApiResponse(404, null, "User not found"));
-    }
 
-    return res.status(200).json(new ApiResponse(200, user, "User details fetched successfully"));
-  } catch (error) {
-    return res.status(500).json(new ApiResponse(500, null, "Server error"));
+  // Check if user data is in redis
+  const cacheUserData= await client.get(userDbId)
+  if (cacheUserData){
+    return res.status(200).json(new ApiResponse(200, JSON.parse(cacheUserData), "User details fetched successfully"));
+  } else {
+    try {
+      const user = await User.findById(userDbId)
+      if (!user) {
+        return res.status(404).json(new ApiResponse(404, null, "User not found"));
+      }
+      // Cache the user data in redis and set an expiration time of 5 minutes
+      await client.set(userDbId , JSON.stringify(user))
+      await client.expire(userDbId , 300)  
+      return res.status(200).json(new ApiResponse(200, user, "User details fetched successfully"));
+    } catch (error) {
+      return res.status(500).json(new ApiResponse(500, null, "Server error"));
+    }
   }
 })
 
