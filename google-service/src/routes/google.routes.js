@@ -5,7 +5,7 @@ import { googleAuth , googleLogin, scheduleEvent} from "../controllers/google.co
 const googleRouter = Router()
 
 googleRouter.route("/OAuth").get(googleAuth)
-googleRouter.route("/redirect").get(googleLogin)
+googleRouter.route("/redirect").post(googleLogin)
 googleRouter.route("/scheduleEvent").post(scheduleEvent)
 
 export default googleRouter

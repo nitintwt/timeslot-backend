@@ -40,6 +40,8 @@ const googleAuth = asyncHandler (async (req , res)=>{
 
 const googleLogin= asyncHandler(async (req , res)=>{
    const code = req.query.code
+   const userDbId= req.body.userDbId
+   console.log(code)
 
    const oauth2Client = new google.auth.OAuth2(
     process.env.CLIENT_ID,
@@ -47,16 +49,13 @@ const googleLogin= asyncHandler(async (req , res)=>{
     process.env.REDIRECT_URL
    )
 
-   const options = {
-    httpOnly : true,
-    secure: true,
-  }
-
    try {
     const {tokens} = await oauth2Client.getToken(code)
     oauth2Client.setCredentials(tokens);
+    const user = await User.findById(userDbId)
+    user.tokens = JSON.stringify(tokens)
+    await user.save()
     return res.status(200)
-    .cookie("tokens", tokens , options)
     .json(new ApiResponse (200 , tokens, 'Login successfull!!'))
    } catch (error) {
     throw new ApiError(500 , error , "Something went wrong. Try login again")
@@ -65,8 +64,12 @@ const googleLogin= asyncHandler(async (req , res)=>{
 
 const scheduleEvent = asyncHandler (async ( req , res)=>{
   const { userName , client , clientEmail , date , timeSlot , meetReason}= req.body
-  const tokens= {"access_token":"ya29.a0AXooCgvjzoSxKyqRN2ToSxPJ9kFkv4a6xh4pCQX1_om6lufaxvl1JWUAsi66QDX9ybEaae6MUopRKEDvltnNxmpCsQrQzW3WsMlKEnUSWD8dE7jXi4enn3k01z_rt9HA2r96f_pEoVb4KwOlYDVevIxWcyU-mCs6aGAJaCgYKAXwSARMSFQHGX2MiYlNe70x3S-Rz27-ltz6eRQ0171","refresh_token":"1//0g9SGCLgMl7T5CgYIARAAGBASNwF-L9IrYhBAh4iei9fVjj2RWVmILevUuWt9VhAs1GEwW0dtz48LOV5JPW3ijEKn4oIEb9w4UC4","scope":"https://www.googleapis.com/auth/calendar","token_type":"Bearer","expiry_date":1720716619857}
 
+  const user = await User.findOne({userName: userName})
+  const slot = await Slot.findById(timeSlot)
+
+  const tokens = JSON.parse(user?.tokens)
+  
   const oauth2Client = new google.auth.OAuth2(
     process.env.CLIENT_ID,
     process.env.CLIENT_SECRET,
@@ -85,8 +88,7 @@ const scheduleEvent = asyncHandler (async ( req , res)=>{
     return formattedDate
   }
 
-  const user = await User.findOne({userName: userName})
-  const slot = await Slot.findById(timeSlot)
+
 
   try {
     const calenderEvent = await calendar.events.insert({

@@ -51,7 +51,8 @@ const getUserDetails = asyncHandler (async (req , res)=>{
       }
       // Cache the user data in redis and set an expiration time of 5 minutes
       await client.set(userDbId , JSON.stringify(user))
-      await client.expire(userDbId , 300)  
+      await client.expire(userDbId , 300) 
+       
       return res.status(200).json(new ApiResponse(200, user, "User details fetched successfully"));
     } catch (error) {
       return res.status(500).json(new ApiResponse(500, null, "Server error"));
@@ -86,7 +87,7 @@ const setUsername = asyncHandler (async (req , res)=>{
 })
 
 const totalNumberOfMeetingsOfLast28Days = asyncHandler (async (req , res)=>{
-  const {userDbId}= req.body
+  const {userDbId}= req.query
 
   const endDate = new Date()
   const startDate = new Date()
@@ -96,7 +97,7 @@ const totalNumberOfMeetingsOfLast28Days = asyncHandler (async (req , res)=>{
     const numberOfSlots = await Slot.find({creator: userDbId , booked:true , date: { $gte: startDate, $lt: endDate }} )
     const lengthOfSlots = numberOfSlots.length
     return res.status(200).json(
-      new ApiResponse(200 , lengthOfSlots , "Fetched last 28 days slots Successfully ")
+      new ApiResponse(200 , lengthOfSlots, "Fetched last 28 days slots Successfully ")
     )
   } catch (error) {
     throw new ApiError(500 , error , "Something went wrong while fetching last 28 days slots data")
@@ -104,7 +105,7 @@ const totalNumberOfMeetingsOfLast28Days = asyncHandler (async (req , res)=>{
 })
 
 const totalRevenueofLast28Days = asyncHandler (async (req , res)=>{
-  const { userDbId}= req.body
+  const { userDbId}= req.query
 
   const endDate = new Date()
   const startDate = new Date()
@@ -116,7 +117,7 @@ const totalRevenueofLast28Days = asyncHandler (async (req , res)=>{
       return acc + currval.price
     }, 0)
     return res.status(200).json(
-      new ApiResponse(200 , totalRevenue , "Fetched last 28 days revenue Successfully ")
+      new ApiResponse(200 , totalRevenue ,"Fetched last 28 days revenue Successfully ")
     )
   } catch (error) {
     throw new ApiError(500 , error , "Something went wrong while fetching last 28 days revenue")
