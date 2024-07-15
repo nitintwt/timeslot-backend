@@ -88,8 +88,6 @@ const scheduleEvent = asyncHandler (async ( req , res)=>{
     return formattedDate
   }
 
-
-
   try {
     const calenderEvent = await calendar.events.insert({
       calendarId:"primary",
@@ -99,12 +97,12 @@ const scheduleEvent = asyncHandler (async ( req , res)=>{
         summary:`Google meet of ${user.fullName} and ${client}`,
         description:`Reason of meet as described by ${client}:- ${meetReason}`,
         start:{
-          dateTime: `${formatDate(date)}T${slot.startTime}:00+05:30`,
+          dateTime: `${date}T${slot.startTime}:00+05:30`,
           timeZone:'Asia/Kolkata',
           
         },
         end:{
-          dateTime: `${formatDate(date)}T${slot.endTime}:00+05:30`,
+          dateTime: `${date}T${slot.endTime}:00+05:30`,
           timeZone:"Asia/Kolkata"
         },
         conferenceData:{

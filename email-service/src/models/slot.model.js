@@ -8,7 +8,7 @@ const slotSchema = new Schema(
       index: true,
     },
     date:{
-      type: Date,
+      type: String,
       required: true,
       index: true
     },
