@@ -68,14 +68,7 @@ const cancelSlotBooking = asyncHandler (async (req , res)=>{
 
 
   try {
-    await Slot.findByIdAndUpdate(slotId , 
-      {
-        $set:{booked:false}
-      },
-      {
-        new:true
-      }
-    )
+    await Slot.findByIdAndUpdate(slotId , {$set:{booked:false}}, {new:true})
     await Customer.findOneAndDelete({customerEmail: customerEmail}, 
       {
         
@@ -91,5 +84,39 @@ const cancelSlotBooking = asyncHandler (async (req , res)=>{
   }
 })
 
+const getUpcomingSlots = asyncHandler (async (req , res)=>{
+  const userDbId = req.query
 
-export {createSlot , getSlots , cancelSlotBooking} 
+  const startDate = new Date()
+  const formattedStartDate = startDate.toISOString()
+
+  try {
+    const slots = await Slot.find({creator: userDbId , booked:true , date:{ $gte:formattedStartDate} })
+    return res.status(200).json(
+      new ApiResponse(200 , slots , "Upcoming slots fetched successfully")
+    )
+  } catch (error) {
+    throw new ApiError (500 , error , "Something went wrong while fetching upcoming slots data")
+  }
+})
+
+const getPastSlots = asyncHandler (async (req , res)=>{
+  const userDbId = req.query
+
+  const startDate = new Date()
+  const formattedStartDate = startDate.toISOString()
+
+  try {
+    const slots = await Slot.find({creator: userDbId , booked:true , date:{ $lt:formattedStartDate} })
+    return res.status(200).json(
+      new ApiResponse(200 , slots , "Past slots fetched successfully")
+    )
+  } catch (error) {
+    throw new ApiError (500 , error , "Something went wrong while fetching past slots data")
+  }
+
+})
+
+
+
+export {createSlot , getSlots , cancelSlotBooking , getBookedSlot , getUpcomingSlots , getPastSlots} 

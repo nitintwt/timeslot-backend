@@ -1,6 +1,7 @@
 import { google } from "googleapis";
 import { Slot } from "../models/slot.model.js";
 import { User } from "../models/user.model.js";
+import { Customer } from "../../../client-service/src/models/customer.model.js";
 import { asyncHandler } from "../../../common/utils/asyncHandler.js";
 import { ApiResponse } from "../../../common/utils/ApiResponse.js";
 import { ApiError } from "../../../common/utils/ApiError.js";
@@ -130,7 +131,19 @@ const totalRevenueofLast28Days = asyncHandler (async (req , res)=>{
   } 
 })
 
+const getCustomerData = asyncHandler(async (req , res)=>{
+  const slotId= req.query
+  try {
+    const customer = await Customer.findOne({slot:slotId})
+    return res.status(200).json(
+      new ApiResponse(200, customer , "Customer data fetched successfully")
+    )
+  } catch (error) {
+    throw new ApiError(500 , error , "Something went wrong while fetching customer data")
+  }
+})
 
-export {registerUser , getUserDetails , setUsername , totalNumberOfMeetingsOfLast28Days , totalRevenueofLast28Days}
+
+export {registerUser , getUserDetails , setUsername , totalNumberOfMeetingsOfLast28Days , totalRevenueofLast28Days , getCustomerData}
 
 
