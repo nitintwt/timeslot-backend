@@ -31,7 +31,7 @@ const bookSlot = asyncHandler(async(req , res)=>{
   }
 
   try {
-    slot.booked = true;
+    slot.status = 'booked';
     await slot.save();
     const saveCustomerData = await Customer.create({
       customerEmail: email,
@@ -61,4 +61,4 @@ const sendEmail = asyncHandler (async (req, res)=>{
 
 
 
-export  {bookSlot , sendEmail , getCustomersData}
+export  {bookSlot , sendEmail}

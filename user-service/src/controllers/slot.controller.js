@@ -51,7 +51,7 @@ const getSlots = asyncHandler (async (req , res)=>{
   }
   
   try {
-    const slots = await Slot.find({creator: user._id , date , booked:false})
+    const slots = await Slot.find({creator: user._id , date , status:'not booked'})
 
     return res.status(201).json(
       new ApiResponse(201 , slots , "Slots fethced successfully")
@@ -65,10 +65,8 @@ const getSlots = asyncHandler (async (req , res)=>{
 const cancelSlotBooking = asyncHandler (async (req , res)=>{
   const {slotId , customerEmail} = req.body
 
-
-
   try {
-    await Slot.findByIdAndUpdate(slotId , {$set:{booked:false}}, {new:true})
+    await Slot.findByIdAndUpdate(slotId , {$set:{status:'cancelled'}}, {new:true})
     await Customer.findOneAndDelete({customerEmail: customerEmail}, 
       {
         
@@ -85,13 +83,15 @@ const cancelSlotBooking = asyncHandler (async (req , res)=>{
 })
 
 const getUpcomingSlots = asyncHandler (async (req , res)=>{
-  const userDbId = req.query
+  const userDbId = req.query.userDbId
 
   const startDate = new Date()
   const formattedStartDate = startDate.toISOString()
 
+  console.log(formattedStartDate)
+
   try {
-    const slots = await Slot.find({creator: userDbId , booked:true , date:{ $gte:formattedStartDate} })
+    const slots = await Slot.find({creator: userDbId , status:'booked' , date:{ $gte:formattedStartDate} })
     return res.status(200).json(
       new ApiResponse(200 , slots , "Upcoming slots fetched successfully")
     )
@@ -101,13 +101,13 @@ const getUpcomingSlots = asyncHandler (async (req , res)=>{
 })
 
 const getPastSlots = asyncHandler (async (req , res)=>{
-  const userDbId = req.query
+  const userDbId = req.query.userDbId
 
   const startDate = new Date()
   const formattedStartDate = startDate.toISOString()
 
   try {
-    const slots = await Slot.find({creator: userDbId , booked:true , date:{ $lt:formattedStartDate} })
+    const slots = await Slot.find({creator: userDbId , status:'completed' , date:{ $lt:formattedStartDate} })
     return res.status(200).json(
       new ApiResponse(200 , slots , "Past slots fetched successfully")
     )
@@ -117,6 +117,19 @@ const getPastSlots = asyncHandler (async (req , res)=>{
 
 })
 
+const getCancelledSlots = asyncHandler (async (req , res)=>{
+  const userDbId = req.query.userDbId
+
+  try {
+    const slots = await Slot.find({creator:userDbId , status:"cancelled"})
+    return res.status(200).json(
+      new ApiResponse(200 , slots , "Cancelled slots fetched successfully")
+    )
+  } catch (error) {
+    throw new ApiError (500 , error , "Something went wrong while fetching cancelled slots")
+  }
+})
 
 
-export {createSlot , getSlots , cancelSlotBooking , getBookedSlot , getUpcomingSlots , getPastSlots} 
+
+export {createSlot , getSlots , cancelSlotBooking , getUpcomingSlots , getPastSlots , getCancelledSlots} 

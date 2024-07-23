@@ -27,9 +27,9 @@ const slotSchema = new Schema(
     price:{
       type: Number,
     },
-    booked:{
-      type: Boolean,
-      default: false,
+    status:{
+      type: String,
+      default: 'not booked'
     }
   },
   {

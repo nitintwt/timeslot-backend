@@ -132,9 +132,10 @@ const totalRevenueofLast28Days = asyncHandler (async (req , res)=>{
 })
 
 const getCustomerData = asyncHandler(async (req , res)=>{
-  const slotId= req.query
+  const slotId= req.query.slotId
+  console.log(slotId)
   try {
-    const customer = await Customer.findOne({slot:slotId})
+    const customer = await Customer.findOne({slot:slotId}).populate('slot')
     return res.status(200).json(
       new ApiResponse(200, customer , "Customer data fetched successfully")
     )

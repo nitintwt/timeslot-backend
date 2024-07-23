@@ -34,7 +34,7 @@ const emailWorker = new Worker('email-queue', async (job) => {
     const mailConfigs = {
       from: process.env.EMAIL_USER,
       to: data.clientEmail,
-      subject: "Testing",
+      subject: `Regarding meeting scheduled on Timeslot with ${user.fullName}`,
       text: `Hello ${data.clientName}. This email is regarding your scheduled meeting with ${user.fullName}. The meeting is from ${slot.startTime} to ${slot.endTime} on ${slot.date}. The link to the meeting is: ${data.meetLink}.`
     };
 
