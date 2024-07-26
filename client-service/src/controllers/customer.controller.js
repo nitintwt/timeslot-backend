@@ -22,7 +22,7 @@ const emailQueue = new Queue("email-queue" , {
 })
 
 const bookSlot = asyncHandler(async(req , res)=>{
-  const {email , name , reason ,  slotId}= req.body
+  const {email , name , reason ,  slotId , slotCreator}= req.body
   
   const slot = await Slot.findById(slotId)
 
@@ -38,6 +38,7 @@ const bookSlot = asyncHandler(async(req , res)=>{
       customerName: name,
       slot: slotId,
       reasonForMeet: reason,
+      slotCreator: slotCreator
     })
 
     return res.status(201).json(

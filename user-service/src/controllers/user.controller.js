@@ -98,7 +98,7 @@ const totalNumberOfMeetingsOfLast28Days = asyncHandler (async (req , res)=>{
   const formattedEndDate = endDate.toISOString()
 
   try {
-    const numberOfSlots = await Slot.find({creator: userDbId , booked:true , date: { $gte: formattedStartDate, $lt: formattedEndDate }} )
+    const numberOfSlots = await Slot.find({creator: userDbId , status:'booked' , date: { $gte: formattedStartDate, $lt: formattedEndDate }} )
     const lengthOfSlots = numberOfSlots.length
     return res.status(200).json(
       new ApiResponse(200 , lengthOfSlots, "Fetched last 28 days slots Successfully ")
@@ -119,7 +119,7 @@ const totalRevenueofLast28Days = asyncHandler (async (req , res)=>{
   const formattedEndDate = endDate.toISOString()
 
   try {
-    const numberOfPaidBookedSlots = await Slot.find({creator: userDbId , booked:true , date: { $gte: formattedStartDate, $lt: formattedEndDate } , paid:true })
+    const numberOfPaidBookedSlots = await Slot.find({creator: userDbId , status:'booked' , date: { $gte: formattedStartDate, $lt: formattedEndDate } , paid:true })
     const totalRevenue = numberOfPaidBookedSlots.reduce( function (acc , currval){
       return acc + currval.price
     }, 0)
@@ -144,7 +144,19 @@ const getCustomerData = asyncHandler(async (req , res)=>{
   }
 })
 
+const getAllCustomersData = asyncHandler (async (req , res)=>{
+  const userDbId = req.query.userDbId
 
-export {registerUser , getUserDetails , setUsername , totalNumberOfMeetingsOfLast28Days , totalRevenueofLast28Days , getCustomerData}
+  try {
+    const customers = await Customer.find({slotCreator:userDbId})
+    return res.status(200).json(
+      new ApiResponse(200 , customers , "All customers fetched successfully")
+    )
+  } catch (error) {
+    throw new ApiError(500 , error , "Something went wrong while fetching customers data")
+  }
+})
+
+export {registerUser , getUserDetails , setUsername , totalNumberOfMeetingsOfLast28Days , totalRevenueofLast28Days , getCustomerData , getAllCustomersData}
 
 

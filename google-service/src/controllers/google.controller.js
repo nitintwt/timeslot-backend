@@ -6,6 +6,7 @@ import {v4 as uuid} from 'uuid'
 import { Customer } from "../models/customer.model.js";
 import { Slot } from "../models/slot.model.js";
 import { User } from "../models/user.model.js";
+import axios from 'axios'
 
 /* THE FLOW OF GOOGLE CALENDER INTEGRATION :-
    I have made an project in google developer console , and from this i have got some keys.
@@ -60,6 +61,37 @@ const googleLogin= asyncHandler(async (req , res)=>{
    } catch (error) {
     throw new ApiError(500 , error , "Something went wrong. Try login again")
    }
+})
+
+const refreshToken = asyncHandler (async (req , res)=>{
+  const userDbId = req.query.userDbId
+  console.log(userDbId)
+  try {
+    const user = await User.findById(userDbId)
+    const tokens = JSON.parse(user.tokens);
+    const { refresh_token } = tokens;
+    console.log('refresh token',refresh_token)
+    const newAccessToken = await axios.post('https://www.googleapis.com/oauth2/v4/token', null , {
+      params:{
+        client_id: process.env.CLIENT_ID,
+        client_secret: process.env.CLIENT_SECRET,
+        refresh_token: refresh_token,
+        grant_type: 'refresh_token'
+      }
+    })
+    console.log('new access token' ,newAccessToken)
+    const {access_token , expires_in} = newAccessToken.data
+
+    tokens.access_token = access_token;
+    tokens.expiry_date = expires_in;
+    user.tokens = JSON.stringify(tokens);
+    await user.save()
+    return res.status(200).json(
+      new ApiResponse (200 , "Token refreshed successfully")
+    )
+  } catch (error) {
+    throw new ApiError (500 , error , "Something went wrong while refreshing OAuth token")
+  }
 })
 
 const scheduleEvent = asyncHandler (async ( req , res)=>{
@@ -126,4 +158,4 @@ const scheduleEvent = asyncHandler (async ( req , res)=>{
 
 
 
-export {googleAuth , googleLogin , scheduleEvent}
+export {googleAuth , googleLogin , scheduleEvent , refreshToken}
