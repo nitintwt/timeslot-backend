@@ -12,7 +12,7 @@ dotenv.config({
   path:'./.env'
 })
 
-const emailQueue = new Queue("email-queue" , {
+const emailQueue = new Queue("booking-email-queue" , {
   connection: {
     host:process.env.AIVEN_HOST,
     port:process.env.AIVEN_PORT,

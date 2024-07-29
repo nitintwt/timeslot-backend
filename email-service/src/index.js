@@ -1,7 +1,9 @@
 import dotenv from 'dotenv'
 import connectDB from './db/index.js'
 import {app} from './app.js'
-import emailWorker from './controllers/mail.controller.js'
+import { emailWorker } from './controllers/mail.controller.js'
+import { cancelationEmailWorker } from './controllers/mail.controller.js'
+
 
 // to give env access to every file 
 dotenv.config({

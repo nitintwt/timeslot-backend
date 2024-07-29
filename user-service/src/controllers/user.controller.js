@@ -133,7 +133,7 @@ const totalRevenueofLast28Days = asyncHandler (async (req , res)=>{
 
 const getCustomerData = asyncHandler(async (req , res)=>{
   const slotId= req.query.slotId
-  console.log(slotId)
+
   try {
     const customer = await Customer.findOne({slot:slotId}).populate('slot')
     return res.status(200).json(
@@ -147,8 +147,11 @@ const getCustomerData = asyncHandler(async (req , res)=>{
 const getAllCustomersData = asyncHandler (async (req , res)=>{
   const userDbId = req.query.userDbId
 
+  const user = await User.findById(userDbId)
+
   try {
-    const customers = await Customer.find({slotCreator:userDbId})
+    const customers = await Customer.find({slotCreator:user.userName})
+
     return res.status(200).json(
       new ApiResponse(200 , customers , "All customers fetched successfully")
     )
@@ -158,5 +161,3 @@ const getAllCustomersData = asyncHandler (async (req , res)=>{
 })
 
 export {registerUser , getUserDetails , setUsername , totalNumberOfMeetingsOfLast28Days , totalRevenueofLast28Days , getCustomerData , getAllCustomersData}
-
-

@@ -4,6 +4,21 @@ import { ApiError } from "../../../common/utils/ApiError.js";
 import { Customer } from "../models/customer.model.js";
 import { Slot } from "../models/slot.model.js";
 import { User } from "../models/user.model.js";
+import {Queue} from "bullmq"
+import dotenv from 'dotenv'
+
+dotenv.config({
+  path:'./.env'
+})
+
+const cancelationEmailQueue = new Queue("cancelation-email-queue" , {
+  connection: {
+    host:process.env.AIVEN_HOST,
+    port:process.env.AIVEN_PORT,
+    username:process.env.AIVEN_USERNAME,
+    password:process.env.AIVEN_PASSWORD ,
+  },
+})
 
 
 const createSlot = asyncHandler( async(req , res)=>{
@@ -63,17 +78,12 @@ const getSlots = asyncHandler (async (req , res)=>{
 })
 
 const cancelSlotBooking = asyncHandler (async (req , res)=>{
-  const {slotId , customerEmail} = req.body
+  const {slotId , customerEmail , customerName} = req.body
 
   try {
     await Slot.findByIdAndUpdate(slotId , {$set:{status:'cancelled'}}, {new:true})
-    await Customer.findOneAndDelete({customerEmail: customerEmail}, 
-      {
-        
-      }
-    )
-
-    /* Todo : Send email to client about slot cancelation. Make a util for sending mails */
+    await Customer.findOneAndDelete({customerEmail: customerEmail})
+    await cancelationEmailQueue.add(`${customerEmail}`, {customerEmail , customerName , slotId})
     return res.status(200).json(
       new ApiResponse ( 200 , "Booking canceled successfully")
     )
@@ -107,7 +117,7 @@ const getPastSlots = asyncHandler (async (req , res)=>{
   const formattedStartDate = startDate.toISOString()
 
   try {
-    const slots = await Slot.find({creator: userDbId , status:'completed' , date:{ $lt:formattedStartDate} })
+    const slots = await Slot.find({creator: userDbId  , status:'booked' , date:{ $lt:formattedStartDate} })
     return res.status(200).json(
       new ApiResponse(200 , slots , "Past slots fetched successfully")
     )
@@ -129,7 +139,5 @@ const getCancelledSlots = asyncHandler (async (req , res)=>{
     throw new ApiError (500 , error , "Something went wrong while fetching cancelled slots")
   }
 })
-
-
 
 export {createSlot , getSlots , cancelSlotBooking , getUpcomingSlots , getPastSlots , getCancelledSlots} 
