@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  client-service:
+    image: timeslot-client-service
+    ports:
+      - "3000:3000"
+
+  email-service:
+    image: timeslot-email-service
+    ports:
+      - "3001:3001"
+
+  google-service:
+    image: timeslot-google-service
+    ports:
+      - "3002:3002"
+
+  user-service:
+    image: timeslot-user-service
+    ports:
+      - "3003:3003"
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
