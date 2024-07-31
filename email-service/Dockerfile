@@ -1,12 +1,12 @@
 FROM node:18
 
-WORKDIR /user
+WORKDIR /email
 
 COPY package*.json .
 RUN npm install
 
 COPY . .
 
-EXPOSE 3003
+EXPOSE 3001
 
 CMD ["node" , "src/index.js"]

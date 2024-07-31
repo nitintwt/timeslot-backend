@@ -1,7 +1,7 @@
 import { google } from "googleapis";
-import { asyncHandler } from "../../../common/utils/asyncHandler.js";
-import { ApiResponse } from "../../../common/utils/ApiResponse.js";
-import { ApiError } from "../../../common/utils/ApiError.js";
+import { ApiError } from '../utils/ApiError.js'
+import { ApiResponse } from '../utils/ApiResponse.js'
+import {asyncHandler} from '../utils/asyncHandler.js'
 import {v4 as uuid} from 'uuid'
 import { Customer } from "../models/customer.model.js";
 import { Slot } from "../models/slot.model.js";

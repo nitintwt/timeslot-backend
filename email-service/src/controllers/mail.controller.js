@@ -1,7 +1,7 @@
 import { Slot } from "../models/slot.model.js";
 import { User } from "../models/user.model.js";
 import nodemailer from 'nodemailer';
-import { ApiError } from "../../../common/utils/ApiError.js";
+import { ApiError } from '../utils/ApiError.js'
 import { tryCatch, Worker } from 'bullmq';
 import dotenv from 'dotenv'
 
