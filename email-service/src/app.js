@@ -12,4 +12,8 @@ app.use(express.json({limit:'16kb'}))   // setting a limit of json , like how mu
 app.use(express.urlencoded({extended: true , limit:"16kb"}))   // setting a limit to url data 
 app.use(express.static("public"))  //pubic folder to save files
 
+app.use("/", (req , res)=>{
+  return res.status(200).json({ message: "going good" });
+})
+
 export {app}

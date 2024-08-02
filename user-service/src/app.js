@@ -17,5 +17,8 @@ import slotRouter from './routes/slot.routes.js'
 
 app.use("/api/v1/users" , userRouter)
 app.use("/api/v1/slot" , slotRouter)
+app.use("/", (req , res)=>{
+  return res.status(200).json({ message: "going good" });
+})
 
 export {app}
