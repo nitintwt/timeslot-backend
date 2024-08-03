@@ -17,8 +17,8 @@ app.use(express.static("public"))  //pubic folder to save files
 import customerRouter from './routes/customer.routes.js'
 
 app.use("/api/v1/customer" , customerRouter)
-app.use("/", (req , res)=>{
-  return res.status(200).json({ message: "going good" });
+app.get("/", (req , res)=>{
+  return res.status(200).json({ message: "going good from client-service" });
 })
 
 export {app}

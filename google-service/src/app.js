@@ -18,7 +18,7 @@ app.use(cookieParser())  // for crud operations on user's browser cookies
 import googleRouter from './routes/google.routes.js'
 
 app.use("/api/v1/google" , googleRouter)
-app.use("/", (req , res)=>{
+app.get("/", (req , res)=>{
   return res.status(200).json({ message: "going good" });
 })
 

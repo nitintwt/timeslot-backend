@@ -3,26 +3,26 @@ version: '3.8'
 services:
   client-service:
     image: timeslot-client-service
-    ports:
-      - "3000:3000"
+    environment:
+      - PORT=3000
     network_mode: "host"
 
   email-service:
     image: timeslot-email-service
-    ports:
-      - "3001:3001"
+    environment:
+      - PORT=3001
     network_mode: "host"
 
   google-service:
     image: timeslot-google-service
-    ports:
-      - "3002:3002"
+    environment:
+      - PORT=3002
     network_mode: "host"
 
   user-service:
     image: timeslot-user-service
-    ports:
-      - "3003:3003"
+    environment:
+      - PORT=3003
     depends_on:
       - redis
     network_mode: "host"
@@ -30,3 +30,5 @@ services:
   redis:
     image: redis:latest
     network_mode: "host"
+
+
