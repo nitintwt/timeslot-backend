@@ -1,4 +1,4 @@
-FROM node:18
+FROM --platform=linux/ARM64 node:18
 
 WORKDIR /user
 
@@ -10,3 +10,4 @@ COPY . .
 EXPOSE 3003
 
 CMD ["node" , "src/index.js"]
+ 

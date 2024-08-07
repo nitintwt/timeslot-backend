@@ -1,4 +1,4 @@
-FROM node:18
+FROM --platform=linux/ARM64 node:18
 
 WORKDIR /client
 
