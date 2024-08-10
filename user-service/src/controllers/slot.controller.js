@@ -4,7 +4,7 @@ import {asyncHandler} from '../utils/asyncHandler.js'
 import { Customer } from "../models/customer.model.js";
 import { Slot } from "../models/slot.model.js";
 import { User } from "../models/user.model.js";
-import {Queue} from "bullmq"
+import {Queue, tryCatch} from "bullmq"
 import dotenv from 'dotenv'
 
 dotenv.config({
@@ -77,6 +77,18 @@ const getSlots = asyncHandler (async (req , res)=>{
   }
 })
 
+const getSlotData = asyncHandler (async(req , res)=>{
+  const {slotId}= req.query
+  try {
+    const slot = await Slot.findById(slotId)
+    return res.status(200).json(
+      new ApiResponse(200 , slot , "Slot data fetched successfully")
+    )
+  } catch (error) {
+    throw new ApiError(501 , error , "Something went wrong while fetching slot data")
+  }
+})
+
 const cancelSlotBooking = asyncHandler (async (req , res)=>{
   const {slotId , customerEmail , customerName} = req.body
 
@@ -140,4 +152,4 @@ const getCancelledSlots = asyncHandler (async (req , res)=>{
   }
 })
 
-export {createSlot , getSlots , cancelSlotBooking , getUpcomingSlots , getPastSlots , getCancelledSlots} 
+export {createSlot , getSlots , cancelSlotBooking , getUpcomingSlots , getPastSlots , getCancelledSlots , getSlotData} 

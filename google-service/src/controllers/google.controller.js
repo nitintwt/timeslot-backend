@@ -40,7 +40,7 @@ const googleAuth = asyncHandler (async (req , res)=>{
 })
 
 const googleLogin= asyncHandler(async (req , res)=>{
-   const code = req.query.code
+   const code = req.query.code  
    const userDbId= req.body.userDbId
    console.log(code)
 
@@ -114,12 +114,6 @@ const scheduleEvent = asyncHandler (async ( req , res)=>{
     auth:process.env.GOOGLE_CALENDER_API_KEY
   })
 
-  function formatDate (date){
-    const [day , month , year]=date.split("/")
-    const formattedDate = `${year}-${month}-${day}`;
-    return formattedDate
-  }
-
   try {
     const calenderEvent = await calendar.events.insert({
       calendarId:"primary",
@@ -148,8 +142,9 @@ const scheduleEvent = asyncHandler (async ( req , res)=>{
         ]
       }
     })
+    const meetLink = calenderEvent.data.hangoutLink
     return res.status(200).json(
-      new ApiResponse(200 , calenderEvent , "Meeting scheduled successfully. Check your google calender")
+      new ApiResponse(200 , meetLink , "Meeting scheduled successfully. Check your google calender")
     )
   } catch (error) {
     throw new ApiError ( 500 , error , "Something went wrong while scheduling meeting. Please try again")

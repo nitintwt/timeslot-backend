@@ -5,8 +5,9 @@ import { ApiError } from '../utils/ApiError.js'
 import { ApiResponse } from '../utils/ApiResponse.js'
 import {asyncHandler} from '../utils/asyncHandler.js'
 import nodemailer from 'nodemailer'
-import {Queue} from "bullmq"
+import {Queue, tryCatch} from "bullmq"
 import dotenv from 'dotenv'
+import {z} from 'zod'
 
 dotenv.config({
   path:'./.env'
@@ -21,8 +22,31 @@ const emailQueue = new Queue("booking-email-queue" , {
   },
 })
 
+const emailSchema = z.string().email()
+const reasonSchema = z.string().min(51)
+
 const bookSlot = asyncHandler(async(req , res)=>{
   const {email , name , reason ,  slotId , slotCreator}= req.body
+  
+  try {
+    emailSchema.parse(email)
+  } catch (error) {
+    return res.status(400).json(
+      new ApiError(400 , null , "Invalid email address")
+    )
+  }
+
+  try {
+    reasonSchema.parse(reason)
+  } catch (error) {
+    return res.status(400).json(
+      new ApiError(400 , null , "Reason must be more than 50 characters long")
+    )
+  }
+
+  if ([email , name , reason , slotId , slotCreator].some((field)=> field.trim()==="")){
+    throw new ApiError(400  , "All fields are required")
+  }
   
   const slot = await Slot.findById(slotId)
 
@@ -42,10 +66,12 @@ const bookSlot = asyncHandler(async(req , res)=>{
     })
 
     return res.status(201).json(
-      new ApiResponse(201 , saveCustomerData , "Slot Booked Successfully")
+      new ApiResponse(201 , "Slot Booked Successfully")
     )
   } catch (error) {
-    throw new ApiError(500 , error , "Something went wrong while booking slots")
+    return res.status(400).json(
+      new ApiError(400 , null , error , "Something went wrong while booking your slot")
+    )
   }
 })
 
