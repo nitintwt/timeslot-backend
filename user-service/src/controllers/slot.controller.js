@@ -152,4 +152,35 @@ const getCancelledSlots = asyncHandler (async (req , res)=>{
   }
 })
 
-export {createSlot , getSlots , cancelSlotBooking , getUpcomingSlots , getPastSlots , getCancelledSlots , getSlotData} 
+const getAvailableSlots = asyncHandler (async (req , res)=>{
+  const userDbId = req.query.userDbId
+  const startDate = new Date()
+  const formattedStartDate = startDate.toISOString()
+  try {
+    const slots = await Slot.find({creator:userDbId , status:"not booked" , date:{ $lt:formattedStartDate} })
+    return res.status(200).json(
+      new ApiResponse(200 , slots , "Available slots fetched successfully")
+    )
+  } catch (error) {
+    return res.status(500).json(
+      new ApiError(400 , error , "Something went wrong while fetching available slots")
+    )
+  }
+})
+
+const deleteSlot = asyncHandler (async (req , res)=>{
+  const slotId = req.query.slotId
+
+  try {
+    const slot = await Slot.findByIdAndDelete(slotId)
+    return res.status(200).json(
+      new ApiResponse(200 , "Slot deleted Successfully")
+    )
+  } catch (error) {
+    return res.status(500).json(
+      new ApiError (500 , error , "Something went wrong while deleting your slot")
+    )
+  }
+})
+
+export {createSlot , getSlots , cancelSlotBooking , getUpcomingSlots , getPastSlots , getCancelledSlots , getSlotData , getAvailableSlots , deleteSlot} 
