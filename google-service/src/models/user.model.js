@@ -1,5 +1,5 @@
 import mongoose, {Schema} from "mongoose";
-import crypto from 'crypto'
+
 
 
 
@@ -49,13 +49,5 @@ const userSchema = new Schema(
     timestamps: true
   }
 )
-
-userSchema.pre("save" , async (next)=>{
-  const cipher = crypto.createCipheriv('aes-256-cbc' , process.env.CRYPTO_KEY , process.env.CRYPTO_IV)
-  const encrypted = cipher.update(this.tokens , 'utf-8' , 'hex')
-  encrypted += cipher.final('hex')
-  this.tokens =encrypted
-  next()
-})
 
 export const User = mongoose.model("User" , userSchema)

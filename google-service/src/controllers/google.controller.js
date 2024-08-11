@@ -7,6 +7,11 @@ import { Customer } from "../models/customer.model.js";
 import { Slot } from "../models/slot.model.js";
 import { User } from "../models/user.model.js";
 import axios from 'axios'
+import crypto from 'crypto'
+import dotenv from 'dotenv'
+dotenv.config({
+  path:'./.env'
+})
 
 /* THE FLOW OF GOOGLE CALENDER INTEGRATION :-
    I have made an project in google developer console , and from this i have got some keys.
@@ -21,6 +26,10 @@ import axios from 'axios'
   handled concurrently. When multiple requests are being processed simultaneously, a shared global oauth2Client might have its state overwritten by concurrent requests, leading to unpredictable behavior.
   Creating a new instance of oauth2Client per request ensures that each request is isolated, with its own state and credentials, avoiding unwanted issues.
 */
+
+const key = Buffer.from(process.env.CRYPTO_KEY, 'hex'); // 32 bytes for aes-256-cbc
+const iv = Buffer.from(process.env.CRYPTO_IV, 'hex'); // 16 bytes for aes-256-cbc
+
 
 const googleAuth = asyncHandler (async (req , res)=>{
   const oauth2Client = new google.auth.OAuth2(
@@ -50,11 +59,20 @@ const googleLogin= asyncHandler(async (req , res)=>{
     process.env.REDIRECT_URL
    )
 
+
    try {
-    const {tokens} = await oauth2Client.getToken(code)
+    const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
+
+    // convert tokens to a JSON string before encryption
+    const tokenString = JSON.stringify(tokens)
+
+    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv)
+    let encrypted = cipher.update(tokenString, 'utf-8', 'hex')
+    encrypted += cipher.final('hex')
+
     const user = await User.findById(userDbId)
-    user.tokens = JSON.stringify(tokens)
+    user.tokens = encrypted
     await user.save()
     return res.status(200)
     .json(new ApiResponse (200 , tokens, 'Login successfull!!'))
@@ -99,8 +117,15 @@ const scheduleEvent = asyncHandler (async ( req , res)=>{
 
   const user = await User.findOne({userName: userName})
   const slot = await Slot.findById(timeSlot)
+  const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+  let decrypted = decipher.update(user?.tokens, 'hex', 'utf-8');
+  decrypted += decipher.final('utf-8');
+  console.log("decrypted" , decrypted)
 
-  const tokens = JSON.parse(user?.tokens)
+  const tokens = JSON.parse(decrypted)
+
+  console.log("tokens" , tokens)
+
   
   const oauth2Client = new google.auth.OAuth2(
     process.env.CLIENT_ID,

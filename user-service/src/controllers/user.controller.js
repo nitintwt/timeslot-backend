@@ -14,7 +14,7 @@ const registerUser = asyncHandler( async (req , res)=>{
   const existedUser = await User.findOne({email})
 
   if(existedUser){
-    return res.status(201).json(
+    return res.status(200).json(
       new ApiResponse(200 , existedUser , "User Already exists")
     )
   }
@@ -29,10 +29,12 @@ const registerUser = asyncHandler( async (req , res)=>{
   const createdUser = await User.findById(user?._id)
 
   if(!createdUser){
-    throw new ApiError(500 , "Something went wrong while registering the user")
+    throw new ApiError(500 , "Something went wrong while registering the user. Please try again")
   }
 
-  return res.status(201).json(
+
+
+  return res.status(201).cookie("userDbId", user._id , {httpOnly:true}).json(
     new ApiResponse(200 , createdUser , "User registered Successfully")
   )
 })
