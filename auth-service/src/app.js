@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
+import authRouter from './routes/auth.routes.js'
 
 const app = express()
 
@@ -14,5 +15,7 @@ app.use(express.urlencoded({extended: true , limit:"16kb"}))   // setting a limi
 app.use(express.static("public"))  //pubic folder to save files
 app.use(cookieParser())  // by this we can access user cookies , and can do CRUD operation on it
 
+//routes
+app.use("/api/v1/auth", authRouter)
 
 export {app}
