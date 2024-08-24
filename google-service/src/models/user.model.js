@@ -1,13 +1,16 @@
 import mongoose, {Schema} from "mongoose";
 
-
-
-
 const userSchema = new Schema(
   {
     fullName:{
       type : String,
       required: true,
+    },
+    password:{
+      type:String
+    },
+    refreshToken:{
+        type:String
     },
     userName:{
       type : String,
@@ -28,9 +31,6 @@ const userSchema = new Schema(
     stripeAccountId:{
       type : String,
       default: null,
-    },
-    tokens:{
-      type: String,  
     },
     slots: [
       {

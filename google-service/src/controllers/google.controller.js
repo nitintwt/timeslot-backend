@@ -65,14 +65,14 @@ const googleLogin= asyncHandler(async (req , res)=>{
     oauth2Client.setCredentials(tokens);
 
     // convert tokens to a JSON string before encryption
-    const tokenString = JSON.stringify(tokens)
+    /*const tokenString = JSON.stringify(tokens)
 
     const cipher = crypto.createCipheriv('aes-256-cbc', key, iv)
     let encrypted = cipher.update(tokenString, 'utf-8', 'hex')
-    encrypted += cipher.final('hex')
+    encrypted += cipher.final('hex')*/
 
     const user = await User.findById(userDbId)
-    user.tokens = encrypted
+    user.tokens = JSON.stringify(tokens);
     await user.save()
     return res.status(200)
     .json(new ApiResponse (200 , tokens, 'Login successfull!!'))
@@ -117,12 +117,12 @@ const scheduleEvent = asyncHandler (async ( req , res)=>{
 
   const user = await User.findOne({userName: userName})
   const slot = await Slot.findById(timeSlot)
-  const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+  /*const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
   let decrypted = decipher.update(user?.tokens, 'hex', 'utf-8');
   decrypted += decipher.final('utf-8');
-  console.log("decrypted" , decrypted)
+  console.log("decrypted" , decrypted)*/
 
-  const tokens = JSON.parse(decrypted)
+  const tokens = JSON.parse(user?.tokens)
 
   console.log("tokens" , tokens)
 

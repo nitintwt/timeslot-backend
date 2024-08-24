@@ -5,7 +5,7 @@ import { Customer } from "../models/customer.model.js";
 import { ApiError } from '../utils/ApiError.js'
 import { ApiResponse } from '../utils/ApiResponse.js'
 import {asyncHandler} from '../utils/asyncHandler.js'
-import client from "../Client.js";
+
 
 const registerUser = asyncHandler( async (req , res)=>{
   const {fullName , email}= req.body
@@ -42,7 +42,7 @@ const registerUser = asyncHandler( async (req , res)=>{
 const getUserDetails = asyncHandler (async (req , res)=>{
   const {userDbId}= req.query
 
-  // Check if user data is in redis
+  //Check if user data is in redis
   /*const cacheUserData= await client.get(userDbId)
   if (cacheUserData){
     return res.status(200).json(new ApiResponse(200, JSON.parse(cacheUserData), "User details fetched successfully"));
@@ -103,7 +103,7 @@ const totalNumberOfMeetingsOfLast28Days = asyncHandler (async (req , res)=>{
     const numberOfSlots = await Slot.find({creator: userDbId , status:'booked' , date: { $gte: formattedStartDate, $lt: formattedEndDate }} )
     const lengthOfSlots = numberOfSlots.length
     return res.status(200).json(
-      new ApiResponse(200 , lengthOfSlots, "Fetched last 28 days slots Successfully ")
+      new ApiResponse(200 , lengthOfSlots, "Fetched number of meeting of last 28 days Successfully ")
     )
   } catch (error) {
     throw new ApiError(500 , error , "Something went wrong while fetching last 28 days slots data")

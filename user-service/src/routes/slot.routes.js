@@ -4,14 +4,14 @@ import { verifyUser } from "../middlewares/auth.middleware.js";
 
 const slotRouter = Router()
 
-slotRouter.route("/createSlot").post( verifyUser,createSlot)
+slotRouter.route("/createSlot").post( createSlot)
 slotRouter.route("/getSlots").get(getSlots)
-slotRouter.route("/cancelBooking").post(verifyUser, cancelSlotBooking)
-slotRouter.route('/upcomingSlots').get(verifyUser ,getUpcomingSlots)
-slotRouter.route('/pastSlots').get(verifyUser ,getPastSlots)
-slotRouter.route('/cancelledSlots').get(verifyUser ,getCancelledSlots)
-slotRouter.route('/getSlotData').get(verifyUser ,getSlotData)
-slotRouter.route("/availableSlots").get(verifyUser , getAvailableSlots)
-slotRouter.route("/deleteSlot").delete(verifyUser , deleteSlot)
+slotRouter.route("/cancelBooking").post( cancelSlotBooking)
+slotRouter.route('/upcomingSlots').get(getUpcomingSlots)
+slotRouter.route('/pastSlots').get(getPastSlots)
+slotRouter.route('/cancelledSlots').get(getCancelledSlots)
+slotRouter.route('/getSlotData').get(getSlotData)
+slotRouter.route("/availableSlots").get( getAvailableSlots)
+slotRouter.route("/deleteSlot").delete( deleteSlot)
 
 export default slotRouter

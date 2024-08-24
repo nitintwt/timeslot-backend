@@ -157,7 +157,7 @@ const getAvailableSlots = asyncHandler (async (req , res)=>{
   const startDate = new Date()
   const formattedStartDate = startDate.toISOString()
   try {
-    const slots = await Slot.find({creator:userDbId , status:"not booked" , date:{ $lt:formattedStartDate} })
+    const slots = await Slot.find({creator:userDbId , status:"not booked" , date:{ $gte:formattedStartDate} })
     return res.status(200).json(
       new ApiResponse(200 , slots , "Available slots fetched successfully")
     )

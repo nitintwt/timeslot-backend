@@ -6,11 +6,11 @@ dotenv.config({
 })
 
 // using this client we can interact with our redis server
-const client = createClient({
+/*const client = createClient({
   socket:{
-    host:process.env.REDIS_HOST,
+    host:process.env.REDIS_SERVER,
     port:process.env.REDIS_PORT
   }
 })
 
-export default client
+export default client*/

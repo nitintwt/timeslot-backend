@@ -6,6 +6,12 @@ const userSchema = new Schema(
       type : String,
       required: true,
     },
+    password:{
+      type:String
+    },
+    refreshToken:{
+        type:String
+    },
     userName:{
       type : String,
       unique: true,
