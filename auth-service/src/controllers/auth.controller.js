@@ -89,21 +89,23 @@ const loginUser = asyncHandler ( async (req , res)=>{
   ))
 })
 
-const logoutUser = asyncHandler( async (req , res)=>{
-  await  User.findOneAndUpdate(req.user._id , 
-  {
-   $set:{refreshToken: undefined}
-  },
-  {
-    new: true
-  }
-)
-const options = {
-  httpOnly : true,
-  secure: true,
-}
+const logoutUser= asyncHandler (async (req , res)=>{
+  const userId = req.body.userDbId
+  await User.findByIdAndUpdate(userId , {$set:{refreshToken:undefined}}, {new:true})
 
-return res.status(200).clearCookie("accessToken" , options).clearCookie("refreshToken" , options).json(new ApiResponse(200 , "User logged out successfully"))
+  const options ={
+    httpOnly:false,
+    secure:true
+  }
+  return res
+  .status(200)
+  .clearCookie("accessToken", options)
+  .clearCookie("RefreshToken", options)
+  .clearCookie("userData")
+  .json(
+    new ApiResponse(200 , "User logged out successfully")
+  )
+
 })
 
 const refreshAccessToken = asyncHandler( async (req , res)=>{

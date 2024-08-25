@@ -17,5 +17,8 @@ app.use(cookieParser())  // by this we can access user cookies , and can do CRUD
 
 //routes
 app.use("/api/v1/auth", authRouter)
+app.get("/", (req , res)=>{
+  return res.status(200).json({message : "going good from auth-service"})
+})
 
 export {app}
