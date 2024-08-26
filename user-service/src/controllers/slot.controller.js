@@ -64,9 +64,11 @@ const getSlots = asyncHandler (async (req , res)=>{
   if (!user) {
     throw new ApiError(404, 'User not found');
   }
+  const now = new Date();
+  const formattedTime = now.toTimeString().split(' ')[0].substring(0, 5);
   
   try {
-    const slots = await Slot.find({creator: user._id , date , status:'not booked'})
+    const slots = await Slot.find({creator: user._id , date , status:'not booked' , startTime:{$gte:formattedTime}})
 
     return res.status(201).json(
       new ApiResponse(201 , slots , "Slots fethced successfully")
@@ -105,20 +107,40 @@ const cancelSlotBooking = asyncHandler (async (req , res)=>{
 })
 
 const getUpcomingSlots = asyncHandler (async (req , res)=>{
-  const userDbId = req.query.userDbId
+  const userDbId = req.query.userDbId;
+  const now = new Date();
 
-  const startDate = new Date()
-  const formattedStartDate = startDate.toISOString()
+  // Adjust only the date to local time zone
+  const localDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
 
-  console.log(formattedStartDate)
+  // Format the local date to "YYYY-MM-DD"
+  const formattedDate = localDate.toISOString().split('T')[0];
+
+  // Keep the original time in UTC format
+  const formattedTime = now.toTimeString().split(' ')[0].substring(0, 5);
 
   try {
-    const slots = await Slot.find({creator: userDbId , status:'booked' , date:{ $gte:formattedStartDate} })
+    const slots = await Slot.find({
+      creator: userDbId,
+      status: "booked",
+      $or: [
+        {
+          date: formattedDate,
+          startTime: { $gte: formattedTime },
+        },
+        {
+          date: { $gt: formattedDate },
+        },
+      ],
+    })
+
     return res.status(200).json(
-      new ApiResponse(200 , slots , "Upcoming slots fetched successfully")
-    )
+      new ApiResponse(200, slots, "Upcoming booked slots fetched successfully")
+    );
   } catch (error) {
-    throw new ApiError (500 , error , "Something went wrong while fetching upcoming slots data")
+    return res.status(500).json(
+      new ApiError(400, error, "Something went wrong while fetching upcoming slots")
+    );
   }
 })
 
@@ -152,21 +174,44 @@ const getCancelledSlots = asyncHandler (async (req , res)=>{
   }
 })
 
-const getAvailableSlots = asyncHandler (async (req , res)=>{
-  const userDbId = req.query.userDbId
-  const startDate = new Date()
-  const formattedStartDate = startDate.toISOString()
+const getAvailableSlots = asyncHandler(async (req, res) => {
+  const userDbId = req.query.userDbId;
+  const now = new Date();
+
+  // Adjust only the date to local time zone
+  const localDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+
+  // Format the local date to "YYYY-MM-DD"
+  const formattedDate = localDate.toISOString().split('T')[0];
+
+  // Keep the original time in UTC format
+  const formattedTime = now.toTimeString().split(' ')[0].substring(0, 5);
+
   try {
-    const slots = await Slot.find({creator:userDbId , status:"not booked" , date:{ $gte:formattedStartDate} })
+    const slots = await Slot.find({
+      creator: userDbId,
+      status: "not booked",
+      $or: [
+        {
+          date: formattedDate,
+          startTime: { $gte: formattedTime },
+        },
+        {
+          date: { $gt: formattedDate },
+        },
+      ],
+    })
+
     return res.status(200).json(
-      new ApiResponse(200 , slots , "Available slots fetched successfully")
-    )
+      new ApiResponse(200, slots, "Available slots fetched successfully")
+    );
   } catch (error) {
     return res.status(500).json(
-      new ApiError(400 , error , "Something went wrong while fetching available slots")
-    )
+      new ApiError(400, error, "Something went wrong while fetching available slots")
+    );
   }
-})
+});
+
 
 const deleteSlot = asyncHandler (async (req , res)=>{
   const slotId = req.query.slotId
