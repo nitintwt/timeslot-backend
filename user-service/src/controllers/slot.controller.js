@@ -65,7 +65,9 @@ const getSlots = asyncHandler (async (req , res)=>{
     throw new ApiError(404, 'User not found');
   }
   const now = new Date();
-  const formattedTime = now.toTimeString().split(' ')[0].substring(0, 5);
+  const indiaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+  // Keep the time part in IST format
+  const formattedTime = indiaTime.toTimeString().split(' ')[0].substring(0, 5);
   
   try {
     const slots = await Slot.find({creator: user._id , date , status:'not booked' , startTime:{$gte:formattedTime}})
@@ -109,15 +111,13 @@ const cancelSlotBooking = asyncHandler (async (req , res)=>{
 const getUpcomingSlots = asyncHandler (async (req , res)=>{
   const userDbId = req.query.userDbId;
   const now = new Date();
-
-  // Adjust only the date to local time zone
-  const localDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-
+  const indiaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+  
   // Format the local date to "YYYY-MM-DD"
-  const formattedDate = localDate.toISOString().split('T')[0];
-
-  // Keep the original time in UTC format
-  const formattedTime = now.toTimeString().split(' ')[0].substring(0, 5);
+  const formattedDate = indiaTime.toISOString().split('T')[0];
+  
+  // Keep the time part in IST format
+  const formattedTime = indiaTime.toTimeString().split(' ')[0].substring(0, 5);
 
   try {
     const slots = await Slot.find({
@@ -147,11 +147,29 @@ const getUpcomingSlots = asyncHandler (async (req , res)=>{
 const getPastSlots = asyncHandler (async (req , res)=>{
   const userDbId = req.query.userDbId
 
-  const startDate = new Date()
-  const formattedStartDate = startDate.toISOString()
+  const now = new Date();
+  const indiaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+  
+  // Format the local date to "YYYY-MM-DD"
+  const formattedDate = indiaTime.toISOString().split('T')[0];
+  
+  // Keep the time part in IST format
+  const formattedTime = indiaTime.toTimeString().split(' ')[0].substring(0, 5);
 
   try {
-    const slots = await Slot.find({creator: userDbId  , status:'booked' , date:{ $lt:formattedStartDate} })
+    const slots = await Slot.find({
+      creator: userDbId,
+      status: "booked",
+      $or: [
+        {
+          date: formattedDate,
+          startTime: { $lte: formattedTime },
+        },
+        {
+          date: { $lt: formattedDate },
+        },
+      ],
+    })
     return res.status(200).json(
       new ApiResponse(200 , slots , "Past slots fetched successfully")
     )
@@ -177,16 +195,14 @@ const getCancelledSlots = asyncHandler (async (req , res)=>{
 const getAvailableSlots = asyncHandler(async (req, res) => {
   const userDbId = req.query.userDbId;
   const now = new Date();
-
-  // Adjust only the date to local time zone
-  const localDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-
+  const indiaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+  
   // Format the local date to "YYYY-MM-DD"
-  const formattedDate = localDate.toISOString().split('T')[0];
-
-  // Keep the original time in UTC format
-  const formattedTime = now.toTimeString().split(' ')[0].substring(0, 5);
-
+  const formattedDate = indiaTime.toISOString().split('T')[0];
+  
+  // Keep the time part in IST format
+  const formattedTime = indiaTime.toTimeString().split(' ')[0].substring(0, 5);
+  console.log(formattedDate, formattedTime);
   try {
     const slots = await Slot.find({
       creator: userDbId,
