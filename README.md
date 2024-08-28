@@ -12,7 +12,7 @@ I tried to make its backend scalable and secure. Here are the steps I've taken t
 
 5. AWS Load Balancer: It distributes the load across all running tasks to manage user requests.
 
-6. AWS API Gateway: Different services run on different ports of the AWS load balancer. To simplify access, I used AWS API Gateway, which acts as a reverse proxy for the microservices. For example, https://lnkd.in/g-a_xm-D routes requests to different services like /client,/users, and /email. I also configured rate limiting to 100 requests per second to help prevent attacks. More configurations are needed in AWS API Gateway to secure the services since all requests pass through it. If the API Gateway is secure, all other services are also secure.
+6. AWS API Gateway: Different services run on different ports of the AWS load balancer. To simplify access, I used AWS API Gateway, which acts as a reverse proxy for the microservices. For example, https:awsexampleapi.com/timeslot routes requests to different services like /client,/users, and /email. I also configured rate limiting to 100 requests per second to help prevent attacks. More configurations are needed in AWS API Gateway to secure the services since all requests pass through it. If the API Gateway is secure, all other services are also secure.
 
 # Tech Stack :
 1. Node.js
