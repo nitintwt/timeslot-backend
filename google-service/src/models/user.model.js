@@ -32,6 +32,9 @@ const userSchema = new Schema(
       type : String,
       default: null,
     },
+    tokens:{
+      type:String,
+    },
     slots: [
       {
         type: Schema.Types.ObjectId,

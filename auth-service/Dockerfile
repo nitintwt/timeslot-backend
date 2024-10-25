@@ -1,4 +1,4 @@
-FROM --platform=linux/ARM64 node:18
+FROM node:18-alpine
 
 WORKDIR /client
 
@@ -7,6 +7,6 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 3000
+EXPOSE 3004
 
 CMD ["node" , "src/index.js"]

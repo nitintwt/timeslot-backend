@@ -51,7 +51,8 @@ const googleAuth = asyncHandler (async (req , res)=>{
 const googleLogin= asyncHandler(async (req , res)=>{
    const code = req.query.code  
    const userDbId= req.body.userDbId
-   console.log(code)
+   console.log("code",code)
+   console.log("userdbid" , userDbId)
 
    const oauth2Client = new google.auth.OAuth2(
     process.env.CLIENT_ID,
@@ -63,6 +64,7 @@ const googleLogin= asyncHandler(async (req , res)=>{
    try {
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
+    console.log(tokens)
 
     // convert tokens to a JSON string before encryption
     /*const tokenString = JSON.stringify(tokens)

@@ -64,6 +64,7 @@ const getSlots = asyncHandler (async (req , res)=>{
   if (!user) {
     throw new ApiError(404, 'User not found');
   }
+  // i am getting the local date and time , to get slots correctly
   const now = new Date();
   const indiaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
   // Keep the time part in IST format
