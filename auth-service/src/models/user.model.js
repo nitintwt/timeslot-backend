@@ -17,7 +17,6 @@ const userSchema = new Schema(
     userName:{
       type : String,
       unique: true,
-      default: null,
       index: true    //optimize the search
     },
     email:{
@@ -30,7 +29,7 @@ const userSchema = new Schema(
       type:Boolean,
       default: false,
     },
-    stripeAccountId:{
+    razorpayId:{
       type : String,
       default: null,
     },

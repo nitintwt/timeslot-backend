@@ -65,6 +65,7 @@ const getUserDetails = asyncHandler (async (req , res)=>{
 
 const setUsername = asyncHandler (async (req , res)=>{
   const { username , userDbId}= req.body
+  console.log(userDbId)
 
   const user = await User.findById(userDbId)
   if(!user){

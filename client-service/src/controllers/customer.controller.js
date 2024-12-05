@@ -23,7 +23,6 @@ const emailQueue = new Queue("booking-email-queue" , {
 })
 
 const emailSchema = z.string().email()
-const reasonSchema = z.string().min(51)
 
 const bookSlot = asyncHandler(async(req , res)=>{
   const {email , name , reason ,  slotId , slotCreator}= req.body
@@ -33,14 +32,6 @@ const bookSlot = asyncHandler(async(req , res)=>{
   } catch (error) {
     return res.status(400).json(
       new ApiError(400 , null , "Invalid email address")
-    )
-  }
-
-  try {
-    reasonSchema.parse(reason)
-  } catch (error) {
-    return res.status(400).json(
-      new ApiError(400 , null , "Reason must be more than 50 characters long")
     )
   }
 
