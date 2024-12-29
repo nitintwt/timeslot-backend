@@ -31,9 +31,7 @@ const registerUser = asyncHandler( async (req , res)=>{
   if(!createdUser){
     throw new ApiError(500 , "Something went wrong while registering the user. Please try again")
   }
-
-
-
+  
   return res.status(201).cookie("userDbId", user._id , {httpOnly:true}).json(
     new ApiResponse(200 , createdUser , "User registered Successfully")
   )
