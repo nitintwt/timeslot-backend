@@ -16,7 +16,6 @@ const userSchema = new Schema(
       type : String,
       unique: true,
       default: null,
-      index: true    //optimize the search
     },
     email:{
       type : String,
