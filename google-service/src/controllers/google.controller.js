@@ -9,6 +9,7 @@ import { User } from "../models/user.model.js";
 import axios from 'axios'
 import crypto from 'crypto'
 import dotenv from 'dotenv'
+import mongoose from "mongoose";
 dotenv.config({
   path:'./.env'
 })
@@ -27,8 +28,8 @@ dotenv.config({
   Creating a new instance of oauth2Client per request ensures that each request is isolated, with its own state and credentials, avoiding unwanted issues.
 */
 
-const key = Buffer.from(process.env.CRYPTO_KEY, 'hex'); // 32 bytes for aes-256-cbc
-const iv = Buffer.from(process.env.CRYPTO_IV, 'hex'); // 16 bytes for aes-256-cbc
+//const key = Buffer.from(process.env.CRYPTO_KEY, 'hex'); // 32 bytes for aes-256-cbc
+//const iv = Buffer.from(process.env.CRYPTO_IV, 'hex'); // 16 bytes for aes-256-cbc
 
 
 const googleAuth = asyncHandler (async (req , res)=>{
@@ -51,8 +52,10 @@ const googleAuth = asyncHandler (async (req , res)=>{
 const googleLogin= asyncHandler(async (req , res)=>{
    const code = req.query.code  
    const userDbId= req.body.userDbId
-   console.log("code",code)
-   console.log("userdbid" , userDbId)
+
+   if (!mongoose.isValidObjectId(userDbId)){
+    throw new ApiError(401 , "Invalid user ID")
+   }
 
    const oauth2Client = new google.auth.OAuth2(
     process.env.CLIENT_ID,
@@ -60,11 +63,9 @@ const googleLogin= asyncHandler(async (req , res)=>{
     process.env.REDIRECT_URL
    )
 
-
    try {
-    const { tokens } = await oauth2Client.getToken(code);
-    oauth2Client.setCredentials(tokens);
-    console.log(tokens)
+    const { tokens } = await oauth2Client.getToken(code)
+    oauth2Client.setCredentials(tokens)
 
     // convert tokens to a JSON string before encryption
     /*const tokenString = JSON.stringify(tokens)
@@ -73,24 +74,32 @@ const googleLogin= asyncHandler(async (req , res)=>{
     let encrypted = cipher.update(tokenString, 'utf-8', 'hex')
     encrypted += cipher.final('hex')*/
 
-    const user = await User.findById(userDbId)
-    user.tokens = JSON.stringify(tokens);
-    await user.save()
+    const user = await User.findByIdAndUpdate(userDbId ,{
+      tokens: JSON.stringify(tokens)
+    })
+
+    if(!user){
+      throw new ApiError(404 , "No user found")
+    }
+
     return res.status(200)
     .json(new ApiResponse (200 , tokens, 'Login successfull!!'))
    } catch (error) {
-    throw new ApiError(500 , error , "Something went wrong. Try login again")
+    throw new ApiError(500 , "Something went wrong. Try login again")
    }
 })
 
 const refreshToken = asyncHandler (async (req , res)=>{
   const userDbId = req.query.userDbId
-  console.log(userDbId)
+
+  if (!mongoose.isValidObjectId(userDbId)){
+    throw new ApiError(401 , "Invalid user ID")
+   }
+  
   try {
     const user = await User.findById(userDbId)
-    const tokens = JSON.parse(user.tokens);
-    const { refresh_token } = tokens;
-    console.log('refresh token',refresh_token)
+    const tokens = JSON.parse(user.tokens)
+    const { refresh_token } = tokens
     const newAccessToken = await axios.post('https://www.googleapis.com/oauth2/v4/token', null , {
       params:{
         client_id: process.env.CLIENT_ID,
@@ -99,7 +108,7 @@ const refreshToken = asyncHandler (async (req , res)=>{
         grant_type: 'refresh_token'
       }
     })
-    console.log('new access token' ,newAccessToken)
+
     const {access_token , expires_in} = newAccessToken.data
 
     tokens.access_token = access_token;
@@ -110,7 +119,7 @@ const refreshToken = asyncHandler (async (req , res)=>{
       new ApiResponse (200 , "Token refreshed successfully")
     )
   } catch (error) {
-    throw new ApiError (500 , error , "Something went wrong while refreshing OAuth token")
+    throw new ApiError (500 ,"Something went wrong while refreshing OAuth token")
   }
 })
 
@@ -125,9 +134,6 @@ const scheduleEvent = asyncHandler (async ( req , res)=>{
   console.log("decrypted" , decrypted)*/
 
   const tokens = JSON.parse(user?.tokens)
-
-  console.log("tokens" , tokens)
-
   
   const oauth2Client = new google.auth.OAuth2(
     process.env.CLIENT_ID,
@@ -152,7 +158,6 @@ const scheduleEvent = asyncHandler (async ( req , res)=>{
         start:{
           dateTime: `${date}T${slot.startTime}:00+05:30`,
           timeZone:'Asia/Kolkata',
-          
         },
         end:{
           dateTime: `${date}T${slot.endTime}:00+05:30`,
@@ -174,7 +179,7 @@ const scheduleEvent = asyncHandler (async ( req , res)=>{
       new ApiResponse(200 , meetLink , "Meeting scheduled successfully. Check your google calender")
     )
   } catch (error) {
-    throw new ApiError ( 500 , error , "Something went wrong while scheduling meeting. Please try again")
+    throw new ApiError ( 500 , "Something went wrong while scheduling meeting. Please try again")
   }
 })
 
