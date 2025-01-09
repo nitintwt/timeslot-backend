@@ -1,4 +1,3 @@
-import { google } from "googleapis";
 import { Slot } from "../models/slot.model.js";
 import { User } from "../models/user.model.js";
 import { Customer } from "../models/customer.model.js";
@@ -7,13 +6,12 @@ import { ApiResponse } from '../utils/ApiResponse.js'
 import {asyncHandler} from '../utils/asyncHandler.js'
 import {z} from "zod"
 import mongoose from "mongoose";
-import { parse } from "dotenv";
 
 const usernameSchema = z.object({
   username: z
     .string()
     .min(3, "Username must be at least 3 characters long")
-    .max(30, "Username must be at most 30 characters long")
+    .max(10, "Username must be at most 10 characters long")
     .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
   userDbId: z.string().refine((id) => mongoose.isValidObjectId(id), {
     message: "Invalid user ID",
@@ -79,6 +77,7 @@ const setUsername = asyncHandler(async (req, res) => {
   }
 })
 
+// todo:- use redis to cache data
 const totalNumberOfMeetingsOfLast28Days = asyncHandler (async (req , res)=>{
   const {userDbId}= req.query
 
@@ -104,8 +103,10 @@ const totalNumberOfMeetingsOfLast28Days = asyncHandler (async (req , res)=>{
   }
 })
 
+// todo :- use redis to cache data
 const totalRevenueofLast28Days = asyncHandler (async (req , res)=>{
   const { userDbId}= req.query
+
   if(!mongoose.isValidObjectId(userDbId)){
     throw new ApiError(401, "Invalid user id")
   }
@@ -138,7 +139,7 @@ const getCustomerData = asyncHandler(async (req , res)=>{
   }
 
   try {
-    const customer = await Customer.findOne({slot:slotId}).populate('slot')
+    const customer = await Customer.findOne({slot:slotId})
     return res.status(200).json(
       new ApiResponse(200, customer , "Customer data fetched successfully")
     )

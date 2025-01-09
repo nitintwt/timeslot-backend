@@ -6,6 +6,7 @@ import { Slot } from "../models/slot.model.js";
 import { User } from "../models/user.model.js";
 import {Queue, tryCatch} from "bullmq"
 import dotenv from 'dotenv'
+import mongoose from 'mongoose';
 
 dotenv.config({
   path:'./.env'
@@ -20,7 +21,6 @@ const cancelationEmailQueue = new Queue("cancelation-email-queue" , {
   },
 })
 
-
 const createSlot = asyncHandler( async(req , res)=>{
   const {slots} = req.body
 
@@ -30,8 +30,11 @@ const createSlot = asyncHandler( async(req , res)=>{
 
   const creator = slots?.[0]?.creator
 
-  // Check if the creator exists
-  const user = await User.findOne({_id:creator})
+  if (!mongoose.isValidObjectId(creator)){
+    throw new ApiError(401 , "Invalid user id")
+  }
+
+  const user = await User.findById(creator)
   if (!user) {
     throw new ApiError(404, "User not found");
   }
@@ -49,10 +52,11 @@ const createSlot = asyncHandler( async(req , res)=>{
     await user.save()
 
     return res.status(201).json(
-      new ApiResponse(201, createdSlots, "Slot created Successfully")
+      new ApiResponse(201,"Slot created Successfully")
     )
   } catch (error) {
-    throw new ApiError(500, error, "Error while saving slots in DB")
+    console.error('Error while creating slots:', error)
+    throw new ApiError(500, "Error while creating slots. Try again")
   }
 
 })
@@ -60,65 +64,113 @@ const createSlot = asyncHandler( async(req , res)=>{
 const getSlots = asyncHandler (async (req , res)=>{
   const {date , userName}= req.query
 
+  if (!userName) {
+    throw new ApiError(400, 'Username is required');
+  }
+
   const user = await User.findOne({userName:userName})
   if (!user) {
     throw new ApiError(404, 'User not found');
   }
-  // i am getting the local date and time , to get slots correctly
-  const now = new Date();
-  const indiaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
-  // Keep the time part in IST format
-  const formattedTime = indiaTime.toTimeString().split(' ')[0].substring(0, 5);
+  
+  const now = new Date()
+
+  // converts the date from UTC to IST timezone
+  const indiaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }))
+ 
+  /*
+  .toTimeString() converts Date object to time string (eg: 19:30:00 GMT+0530 )
+  .split(" ")[0] converts the string into array and select the index 0 element  (eg:- 19:30:00)
+  .substring(0, 5) takes only the first 5 characters  (eg:- 19:30)
+  */
+  const formattedTime = indiaTime.toTimeString().split(' ')[0].substring(0, 5)
   
   try {
-    const slots = await Slot.find({creator: user._id , date , status:'not booked' , startTime:{$gte:formattedTime}})
+    const slots = await Slot.find({
+      creator: user._id,
+      date,
+      status: 'not booked',
+      startTime: { $gte: formattedTime },
+    })    
 
-    return res.status(201).json(
-      new ApiResponse(201 , slots , "Slots fethced successfully")
+    return res.status(200).json(
+      new ApiResponse(200 , slots , "Slots fethced successfully")
     )
-    
   } catch (error) {
+    console.error('Error while fetching slots:', error)
     throw new ApiError(501 ,error ,  "Something went wrong while fetching slots")
   }
 })
 
 const getSlotData = asyncHandler (async(req , res)=>{
   const {slotId}= req.query
+  
+  if (!mongoose.isValidObjectId(slotId)){
+    throw new ApiError(401 , "Invalid Slot")
+  }
+
   try {
     const slot = await Slot.findById(slotId)
+
+    if (!slot) {
+      throw new ApiError(404, 'Slot not found')
+    }
+
     return res.status(200).json(
       new ApiResponse(200 , slot , "Slot data fetched successfully")
     )
   } catch (error) {
-    throw new ApiError(501 , error , "Something went wrong while fetching slot data")
+    console.error('Error while fetching slot data:', error)
+    throw new ApiError(501 ,"Something went wrong while fetching slot data")
   }
 })
 
 const cancelSlotBooking = asyncHandler (async (req , res)=>{
   const {slotId , customerEmail , customerName} = req.body
 
+  if(!mongoose.isValidObjectId(slotId)){
+    throw new ApiError(401, "Invalid Slot")
+  }
+
   try {
-    await Slot.findByIdAndUpdate(slotId , {$set:{status:'cancelled'}}, {new:true})
+    const slot = await Slot.findByIdAndUpdate(slotId, { $set: { status: 'cancelled' } }, { new: true })
+    if (!slot) {
+      throw new ApiError(404, 'Slot not found');
+    }
+
     await Customer.findOneAndDelete({customerEmail: customerEmail})
+    
+    // send email
     await cancelationEmailQueue.add(`${customerEmail}`, {customerEmail , customerName , slotId})
+
     return res.status(200).json(
-      new ApiResponse ( 200 , "Booking canceled successfully")
+      new ApiResponse ( 200 , "Booking cancelled successfully")
     )
   } catch (error) {
-    throw new ApiError ( 500 , error , "Something went wrong while canceling the booking. Please try again")
+    console.error('Error while cancelling booking:', error)
+    throw new ApiError ( 500 , "Something went wrong while cancelling the booking. Please try again")
   }
 })
 
 const getUpcomingSlots = asyncHandler (async (req , res)=>{
-  const userDbId = req.query.userDbId;
-  const now = new Date();
-  const indiaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+  const userDbId = req.query.userDbId
+
+  if (!mongoose.isValidObjectId(userDbId)){
+    throw new ApiError(401 , "Invalid user id")
+  }
+
+  const now = new Date()
+  const indiaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }))
   
   // Format the local date to "YYYY-MM-DD"
-  const formattedDate = indiaTime.toISOString().split('T')[0];
+  /*
+  .toISOString() converts "Thu Jan 09 2025 17:30:00 GMT+0530" to "2025-01-09T12:00:00.000Z"
+  .spli('T)[0] divide the string whenever encounter "T" and convert into array and select the index 0 element
+  */
+  const formattedDate = indiaTime.toISOString().split('T')[0]
   
   // Keep the time part in IST format
-  const formattedTime = indiaTime.toTimeString().split(' ')[0].substring(0, 5);
+  const formattedTime = indiaTime.toTimeString().split(' ')[0].substring(0, 5)
 
   try {
     const slots = await Slot.find({
@@ -137,25 +189,28 @@ const getUpcomingSlots = asyncHandler (async (req , res)=>{
 
     return res.status(200).json(
       new ApiResponse(200, slots, "Upcoming booked slots fetched successfully")
-    );
+    )
   } catch (error) {
-    return res.status(500).json(
-      new ApiError(400, error, "Something went wrong while fetching upcoming slots")
-    );
+    console.error('Error while fetching upcoming slots:', error)
+    throw new ApiError(500 , "Something went wrong while fetching upcoming slots")
   }
 })
 
 const getPastSlots = asyncHandler (async (req , res)=>{
   const userDbId = req.query.userDbId
 
+  if (!mongoose.isValidObjectId(userDbId)){
+    throw new ApiError(401 , "Invalid user id")
+  }
+
   const now = new Date();
-  const indiaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+  const indiaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }))
   
   // Format the local date to "YYYY-MM-DD"
-  const formattedDate = indiaTime.toISOString().split('T')[0];
+  const formattedDate = indiaTime.toISOString().split('T')[0]
   
   // Keep the time part in IST format
-  const formattedTime = indiaTime.toTimeString().split(' ')[0].substring(0, 5);
+  const formattedTime = indiaTime.toTimeString().split(' ')[0].substring(0, 5)
 
   try {
     const slots = await Slot.find({
@@ -175,7 +230,8 @@ const getPastSlots = asyncHandler (async (req , res)=>{
       new ApiResponse(200 , slots , "Past slots fetched successfully")
     )
   } catch (error) {
-    throw new ApiError (500 , error , "Something went wrong while fetching past slots data")
+    console.error('Error while fetching past slots:', error)
+    throw new ApiError (500 ,"Something went wrong while fetching past slots data")
   }
 
 })
@@ -183,27 +239,37 @@ const getPastSlots = asyncHandler (async (req , res)=>{
 const getCancelledSlots = asyncHandler (async (req , res)=>{
   const userDbId = req.query.userDbId
 
+  if (!mongoose.isValidObjectId(userDbId)){
+    throw new ApiError(401 , "Invalid user id")
+  }
+
   try {
     const slots = await Slot.find({creator:userDbId , status:"cancelled"})
     return res.status(200).json(
       new ApiResponse(200 , slots , "Cancelled slots fetched successfully")
     )
   } catch (error) {
-    throw new ApiError (500 , error , "Something went wrong while fetching cancelled slots")
+    console.error('Error while fetching cancelled slots:', error)
+    throw new ApiError (500 ,"Something went wrong while fetching cancelled slots")
   }
 })
 
 const getAvailableSlots = asyncHandler(async (req, res) => {
-  const userDbId = req.query.userDbId;
-  const now = new Date();
-  const indiaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+  const userDbId = req.query.userDbId
+
+  if (!mongoose.isValidObjectId(userDbId)){
+    throw new ApiError(401 , "Invalid user id")
+  }
+
+  const now = new Date()
+  const indiaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }))
   
   // Format the local date to "YYYY-MM-DD"
-  const formattedDate = indiaTime.toISOString().split('T')[0];
+  const formattedDate = indiaTime.toISOString().split('T')[0]
   
   // Keep the time part in IST format
-  const formattedTime = indiaTime.toTimeString().split(' ')[0].substring(0, 5);
-  console.log(formattedDate, formattedTime);
+  const formattedTime = indiaTime.toTimeString().split(' ')[0].substring(0, 5)
+
   try {
     const slots = await Slot.find({
       creator: userDbId,
@@ -221,27 +287,31 @@ const getAvailableSlots = asyncHandler(async (req, res) => {
 
     return res.status(200).json(
       new ApiResponse(200, slots, "Available slots fetched successfully")
-    );
+    )
   } catch (error) {
-    return res.status(500).json(
-      new ApiError(400, error, "Something went wrong while fetching available slots")
-    );
+    console.error('Error while fetching available slots:', error)
+    throw new ApiError(400,"Something went wrong while fetching available slots")
   }
-});
-
+})
 
 const deleteSlot = asyncHandler (async (req , res)=>{
   const slotId = req.query.slotId
 
+  if(!mongoose.isValidObjectId(slotId)){
+    throw new ApiError(401 , "Invalid Slot")
+  }
+
   try {
     const slot = await Slot.findByIdAndDelete(slotId)
+    if (!slot) {
+      throw new ApiError(404, 'Slot not found');
+    }
     return res.status(200).json(
       new ApiResponse(200 , "Slot deleted Successfully")
     )
   } catch (error) {
-    return res.status(500).json(
-      new ApiError (500 , error , "Something went wrong while deleting your slot")
-    )
+    console.error('Error while deleting slot:', error)
+    throw new ApiError(500 , "Something went wrong while deleting your slot")
   }
 })
 
