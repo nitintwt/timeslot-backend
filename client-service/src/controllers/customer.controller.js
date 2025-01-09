@@ -54,7 +54,9 @@ const bookSlot = asyncHandler(async(req , res)=>{
   const parseResult = bookingSchema.safeParse(req.body)
 
   if (!parseResult.success) {
-    throw new ApiError(400 , parseResult.error.issues[0].message)
+    return res.status(400).json(
+      {message: parseResult.error.issues[0].message }
+    )
   }
 
   const {email , name , reason ,  slotId , slotCreator}= parseResult.data
@@ -66,7 +68,9 @@ const bookSlot = asyncHandler(async(req , res)=>{
   )
 
   if (!slot) {
-    throw new ApiError(404, 'Slot not found');
+    return res.status(404).json(
+      {message: "Slot not found"}
+    )
   }
 
   try {
@@ -83,7 +87,9 @@ const bookSlot = asyncHandler(async(req , res)=>{
     )
   } catch (error) {
     console.error("Error booking slot:", error)
-    throw new ApiError(500 ,"Something went wrong while booking your slot")
+    return res.status(500).json(
+      {message: "Something went wrong while booking your slot"}
+    )
   }
 })
 
@@ -91,7 +97,9 @@ const sendEmail = asyncHandler (async (req, res)=>{
   const parseResult = emailSchema.safeParse(req.body)
 
   if (!parseResult.success) {
-    throw new ApiError(400 , parseResult.error.issues[0].message)
+    return res.status(400).json(
+      {message: parseResult.error.issues[0].message }
+    )
   }
   const {clientEmail , clientName , slotId , meetLink}= parseResult.data
 

@@ -21,9 +21,11 @@ const usernameSchema = z.object({
 const getUserDetails = asyncHandler (async (req , res)=>{
   const {userDbId}= req.query
 
-  if(!mongoose.isValidObjectId(userDbId)){
-    throw new ApiError(401, "Invalid user id")
-  }
+   if (!mongoose.isValidObjectId(userDbId)){
+    return res.status(400).json(
+      {message:"Invalid user ID"}
+    )
+   }
 
   //Check if user data is in redis
   /*const cacheUserData= await client.get(userDbId)
@@ -43,7 +45,10 @@ const getUserDetails = asyncHandler (async (req , res)=>{
        
       return res.status(200).json(new ApiResponse(200, user, "User details fetched successfully"));
     } catch (error) {
-      throw new ApiError(500 , "Something went wrong")
+      console.error("User details error" , error)
+      return res.status(500).json(
+        {message:"Something went wrong while fetching user details"}
+      )
     }
   
 })
@@ -52,7 +57,9 @@ const setUsername = asyncHandler(async (req, res) => {
   const parseResult = usernameSchema.safeParse(req.body)
 
   if (!parseResult.success) {
-    throw new ApiError(400 , parseResult.error.issues[0].message)
+    return res.status(400).json(
+      {message: parseResult.error.issues[0].message }
+    )
   }
 
   const { username, userDbId } = parseResult.data
@@ -60,7 +67,7 @@ const setUsername = asyncHandler(async (req, res) => {
   try {
     const user = await User.findById(userDbId)
     if (!user) {
-      return res.status(404).json(new ApiResponse(404, "User not found"))
+      return res.status(404).json({message:"User not found"})
     }
 
     const existingUsername = await User.findOne({ userName: username })
@@ -73,7 +80,10 @@ const setUsername = asyncHandler(async (req, res) => {
 
     return res.status(200).json(new ApiResponse(200, "Username registered successfully"));
   } catch (error) {
-    throw new ApiError(500, "Something went wrong while submitting your username. Try again.")
+    console.error("Username creation error" , error)
+    return res.status(500).json(
+      {message : " Something went wrong while submitting your username. Try again."}
+    )
   }
 })
 
@@ -81,9 +91,11 @@ const setUsername = asyncHandler(async (req, res) => {
 const totalNumberOfMeetingsOfLast28Days = asyncHandler (async (req , res)=>{
   const {userDbId}= req.query
 
-  if(!mongoose.isValidObjectId(userDbId)){
-    throw new ApiError(401, "Invalid user id")
-  }
+   if (!mongoose.isValidObjectId(userDbId)){
+    return res.status(400).json(
+      {message:"Invalid user ID"}
+    )
+   }
 
   const endDate = new Date()
   const startDate = new Date()
@@ -99,7 +111,10 @@ const totalNumberOfMeetingsOfLast28Days = asyncHandler (async (req , res)=>{
       new ApiResponse(200 , lengthOfSlots, "Fetched number of meeting of last 28 days Successfully ")
     )
   } catch (error) {
-    throw new ApiError(500 , "Something went wrong while fetching last 28 days meetings data")
+    console.error("Last 28 days data error" , error)
+    return res.status(500).json(
+      {message:"Something went wrong while fetching last 28 days meetings data"}
+    )
   }
 })
 
@@ -107,9 +122,11 @@ const totalNumberOfMeetingsOfLast28Days = asyncHandler (async (req , res)=>{
 const totalRevenueofLast28Days = asyncHandler (async (req , res)=>{
   const { userDbId}= req.query
 
-  if(!mongoose.isValidObjectId(userDbId)){
-    throw new ApiError(401, "Invalid user id")
-  }
+   if (!mongoose.isValidObjectId(userDbId)){
+    return res.status(400).json(
+      {message:"Invalid user ID"}
+    )
+   }
 
   const endDate = new Date()
   const startDate = new Date()
@@ -127,7 +144,10 @@ const totalRevenueofLast28Days = asyncHandler (async (req , res)=>{
       new ApiResponse(200 , totalRevenue ,"Fetched last 28 days revenue Successfully ")
     )
   } catch (error) {
-    throw new ApiError(500 , "Something went wrong while fetching last 28 days revenue")
+    console.error("Last 28 days data error" , error)
+    return res.status(500).json(
+      {message:"Something went wrong while fetching last 28 days revenue"}
+    )
   } 
 })
 
@@ -144,16 +164,21 @@ const getCustomerData = asyncHandler(async (req , res)=>{
       new ApiResponse(200, customer , "Customer data fetched successfully")
     )
   } catch (error) {
-    throw new ApiError(500 , "Something went wrong while fetching customer data")
+    console.error("Customer data error" , error)
+    return res.status(500).json(
+      {message:"Something went wrong while fetching customer data"}
+    )
   }
 })
 
 const getAllCustomersData = asyncHandler (async (req , res)=>{
   const userDbId = req.query.userDbId
 
-  if(!mongoose.isValidObjectId(userDbId)){
-    throw new ApiError(401, "Invalid user id")
-  }
+   if (!mongoose.isValidObjectId(userDbId)){
+    return res.status(400).json(
+      {message:"Invalid user ID"}
+    )
+   }
 
   const user = await User.findById(userDbId)
 
@@ -164,7 +189,10 @@ const getAllCustomersData = asyncHandler (async (req , res)=>{
       new ApiResponse(200 , customers , "All customers fetched successfully")
     )
   } catch (error) {
-    throw new ApiError(500 ,"Something went wrong while fetching customers data")
+    console.error("Customer data error" , error)
+    return res.status(500).json(
+      {message:"Something went wrong while fetching customers data"}
+    )
   }
 })
 

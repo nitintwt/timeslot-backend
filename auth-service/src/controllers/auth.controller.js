@@ -81,6 +81,7 @@ const registerUser = asyncHandler (async (req , res)=>{
       new ApiResponse(200, createdUser , "User registered Successfully")
     )
   } catch (error) {
+    console.error("Register error" , error)
     return res.status(500).json(
       {message: error.message}
     )
@@ -138,6 +139,7 @@ const loginUser = asyncHandler ( async (req , res)=>{
       "User logged in successfully"
     ))
   } catch (error) {
+    console.error("Login error" , error)
     return res.status(500).json(
       {message: error.message}
     )
@@ -162,6 +164,7 @@ const logoutUser= asyncHandler (async (req , res)=>{
       new ApiResponse(200 , "User logged out successfully")
     )
   } catch (error) {
+    console.error("Logout error" , error)
     return res.status(500).json(
       {message:error.message}
     )

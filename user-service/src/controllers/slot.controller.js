@@ -25,19 +25,25 @@ const createSlot = asyncHandler( async(req , res)=>{
   const {slots} = req.body
 
   if (slots.length === 0) {
-    throw new ApiError(400, "No slots provided");
+    return res.status(404).json(
+      {message:"No slots provided"}
+    )
   }
 
   const creator = slots?.[0]?.creator
 
-  if (!mongoose.isValidObjectId(creator)){
-    throw new ApiError(401 , "Invalid user id")
-  }
+   if (!mongoose.isValidObjectId(userDbId)){
+    return res.status(400).json(
+      {message:"Invalid user ID"}
+    )
+   }
 
   const user = await User.findById(creator)
-  if (!user) {
-    throw new ApiError(404, "User not found");
-  }
+    if(!user){
+      return res.status(404).json(
+        {message:"User not found"}
+      )
+    }
 
   // slot.save() will be an array of promises , Promise.all() takes all this arrays and allow all these promises to execute concurrently( all at the same time) and retruns a single promise
   // so here a slot.save() starts its execution without waiting for the previous one to be completed
@@ -56,7 +62,9 @@ const createSlot = asyncHandler( async(req , res)=>{
     )
   } catch (error) {
     console.error('Error while creating slots:', error)
-    throw new ApiError(500, "Error while creating slots. Try again")
+    return res.status(500).json(
+      {message:"Something went wrong while creating your slots. Try again"}
+    )
   }
 
 })
@@ -65,12 +73,16 @@ const getSlots = asyncHandler (async (req , res)=>{
   const {date , userName}= req.query
 
   if (!userName) {
-    throw new ApiError(400, 'Username is required');
+    return res.status(400).json(
+      {message: "Username is required"}
+    )
   }
 
   const user = await User.findOne({userName:userName})
   if (!user) {
-    throw new ApiError(404, 'User not found');
+    return res.status(404).json(
+      {message:"User not found"}
+    )
   }
   
   const now = new Date()
@@ -98,22 +110,28 @@ const getSlots = asyncHandler (async (req , res)=>{
     )
   } catch (error) {
     console.error('Error while fetching slots:', error)
-    throw new ApiError(501 ,error ,  "Something went wrong while fetching slots")
+    return res.status(500).json(
+      {message:"Something went wrong while fetching slots"}
+    )
   }
 })
 
 const getSlotData = asyncHandler (async(req , res)=>{
   const {slotId}= req.query
   
-  if (!mongoose.isValidObjectId(slotId)){
-    throw new ApiError(401 , "Invalid Slot")
-  }
+   if (!mongoose.isValidObjectId(slotId)){
+    return res.status(400).json(
+      {message:"Invalid slot ID"}
+    )
+   }
 
   try {
     const slot = await Slot.findById(slotId)
 
     if (!slot) {
-      throw new ApiError(404, 'Slot not found')
+      return res.status(404).json(
+        {message:"Slot not found"}
+      )
     }
 
     return res.status(200).json(
@@ -121,21 +139,27 @@ const getSlotData = asyncHandler (async(req , res)=>{
     )
   } catch (error) {
     console.error('Error while fetching slot data:', error)
-    throw new ApiError(501 ,"Something went wrong while fetching slot data")
+    return res.status(500).json(
+      {message:"Something went wrong while fetching slot data"}
+    )
   }
 })
 
 const cancelSlotBooking = asyncHandler (async (req , res)=>{
   const {slotId , customerEmail , customerName} = req.body
 
-  if(!mongoose.isValidObjectId(slotId)){
-    throw new ApiError(401, "Invalid Slot")
-  }
+    if (!mongoose.isValidObjectId(slotId)){
+      return res.status(400).json(
+        {message:"Invalid slot ID"}
+      )
+    }
 
   try {
     const slot = await Slot.findByIdAndUpdate(slotId, { $set: { status: 'cancelled' } }, { new: true })
     if (!slot) {
-      throw new ApiError(404, 'Slot not found');
+      return res.status(404).json(
+        {message:"Slot not found"}
+      )
     }
 
     await Customer.findOneAndDelete({customerEmail: customerEmail})
@@ -148,16 +172,20 @@ const cancelSlotBooking = asyncHandler (async (req , res)=>{
     )
   } catch (error) {
     console.error('Error while cancelling booking:', error)
-    throw new ApiError ( 500 , "Something went wrong while cancelling the booking. Please try again")
+    return res.status(500).json(
+      {message:"Something went wrong while cancelling the booking. Please try again"}
+    )
   }
 })
 
 const getUpcomingSlots = asyncHandler (async (req , res)=>{
   const userDbId = req.query.userDbId
 
-  if (!mongoose.isValidObjectId(userDbId)){
-    throw new ApiError(401 , "Invalid user id")
-  }
+   if (!mongoose.isValidObjectId(userDbId)){
+    return res.status(400).json(
+      {message:"Invalid user ID"}
+    )
+   }
 
   const now = new Date()
   const indiaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }))
@@ -192,16 +220,20 @@ const getUpcomingSlots = asyncHandler (async (req , res)=>{
     )
   } catch (error) {
     console.error('Error while fetching upcoming slots:', error)
-    throw new ApiError(500 , "Something went wrong while fetching upcoming slots")
+    return res.status(500).json(
+      {message:"Something went wrong while fetching upcoming slots"}
+    )
   }
 })
 
 const getPastSlots = asyncHandler (async (req , res)=>{
   const userDbId = req.query.userDbId
 
-  if (!mongoose.isValidObjectId(userDbId)){
-    throw new ApiError(401 , "Invalid user id")
-  }
+   if (!mongoose.isValidObjectId(userDbId)){
+    return res.status(400).json(
+      {message:"Invalid user ID"}
+    )
+   }
 
   const now = new Date();
   const indiaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }))
@@ -231,7 +263,9 @@ const getPastSlots = asyncHandler (async (req , res)=>{
     )
   } catch (error) {
     console.error('Error while fetching past slots:', error)
-    throw new ApiError (500 ,"Something went wrong while fetching past slots data")
+    return res.status(500).json(
+      {message:"Something went wrong while fetching past slots data"}
+    )
   }
 
 })
@@ -239,9 +273,11 @@ const getPastSlots = asyncHandler (async (req , res)=>{
 const getCancelledSlots = asyncHandler (async (req , res)=>{
   const userDbId = req.query.userDbId
 
-  if (!mongoose.isValidObjectId(userDbId)){
-    throw new ApiError(401 , "Invalid user id")
-  }
+   if (!mongoose.isValidObjectId(userDbId)){
+    return res.status(400).json(
+      {message:"Invalid user ID"}
+    )
+   }
 
   try {
     const slots = await Slot.find({creator:userDbId , status:"cancelled"})
@@ -250,16 +286,20 @@ const getCancelledSlots = asyncHandler (async (req , res)=>{
     )
   } catch (error) {
     console.error('Error while fetching cancelled slots:', error)
-    throw new ApiError (500 ,"Something went wrong while fetching cancelled slots")
+    return res.status(500).json(
+      {message:"Something went wrong while fetching cancelled slots"}
+    )
   }
 })
 
 const getAvailableSlots = asyncHandler(async (req, res) => {
   const userDbId = req.query.userDbId
 
-  if (!mongoose.isValidObjectId(userDbId)){
-    throw new ApiError(401 , "Invalid user id")
-  }
+   if (!mongoose.isValidObjectId(userDbId)){
+    return res.status(400).json(
+      {message:"Invalid user ID"}
+    )
+   }
 
   const now = new Date()
   const indiaTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }))
@@ -290,28 +330,34 @@ const getAvailableSlots = asyncHandler(async (req, res) => {
     )
   } catch (error) {
     console.error('Error while fetching available slots:', error)
-    throw new ApiError(400,"Something went wrong while fetching available slots")
+    return res.status(500).json(
+      {message:"Something went wrong while fetching available slots"}
+    )
   }
 })
 
 const deleteSlot = asyncHandler (async (req , res)=>{
   const slotId = req.query.slotId
 
-  if(!mongoose.isValidObjectId(slotId)){
-    throw new ApiError(401 , "Invalid Slot")
-  }
+   if (!mongoose.isValidObjectId(slotId)){
+    return res.status(400).json(
+      {message:"Invalid slot ID"}
+    )
+   }
 
   try {
     const slot = await Slot.findByIdAndDelete(slotId)
     if (!slot) {
-      throw new ApiError(404, 'Slot not found');
+      return res.status(404).json({message:"Slot not found"})
     }
     return res.status(200).json(
       new ApiResponse(200 , "Slot deleted Successfully")
     )
   } catch (error) {
     console.error('Error while deleting slot:', error)
-    throw new ApiError(500 , "Something went wrong while deleting your slot")
+    return res.status(500).json(
+      {message:"Something went wrong while deleting your slot"}
+    )
   }
 })
 

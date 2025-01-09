@@ -54,7 +54,9 @@ const googleLogin= asyncHandler(async (req , res)=>{
    const userDbId= req.body.userDbId
 
    if (!mongoose.isValidObjectId(userDbId)){
-    throw new ApiError(401 , "Invalid user ID")
+    return res.status(400).json(
+      {message:"Invalid user ID"}
+    )
    }
 
    const oauth2Client = new google.auth.OAuth2(
@@ -79,13 +81,18 @@ const googleLogin= asyncHandler(async (req , res)=>{
     })
 
     if(!user){
-      throw new ApiError(404 , "No user found")
+      return res.status(404).json(
+        {message:"User not found"}
+      )
     }
 
     return res.status(200)
     .json(new ApiResponse (200 , tokens, 'Login successfull!!'))
    } catch (error) {
-    throw new ApiError(500 , "Something went wrong. Try login again")
+    console.error("Google login error" , error)
+    return res.status(500).json(
+      {message:"Something went wrong. Try login again"}
+    )
    }
 })
 
@@ -93,7 +100,9 @@ const refreshToken = asyncHandler (async (req , res)=>{
   const userDbId = req.query.userDbId
 
   if (!mongoose.isValidObjectId(userDbId)){
-    throw new ApiError(401 , "Invalid user ID")
+    return res.status(400).json(
+      {message:"Invalid user ID"}
+    )
    }
   
   try {
@@ -119,7 +128,10 @@ const refreshToken = asyncHandler (async (req , res)=>{
       new ApiResponse (200 , "Token refreshed successfully")
     )
   } catch (error) {
-    throw new ApiError (500 ,"Something went wrong while refreshing OAuth token")
+    console.error("refresh token error" , error)
+    return res.status(500).json(
+      {message: "Something went wrong while refreshing OAuth token"}
+    )
   }
 })
 
@@ -179,7 +191,10 @@ const scheduleEvent = asyncHandler (async ( req , res)=>{
       new ApiResponse(200 , meetLink , "Meeting scheduled successfully. Check your google calender")
     )
   } catch (error) {
-    throw new ApiError ( 500 , "Something went wrong while scheduling meeting. Please try again")
+    console.error("Schedule error" , error)
+    return res.status(500).json(
+      {message: "Something went wrong while scheduling meeting. Please try again"}
+    )
   }
 })
 
