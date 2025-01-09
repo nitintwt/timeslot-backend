@@ -10,9 +10,6 @@ app.use(cors({
 
 app.use(express.json({limit:'16kb'}))   // setting a limit of json , like how much json data can be sent to backend 
 app.use(express.urlencoded({extended: true , limit:"16kb"}))   // setting a limit to url data 
-app.use(express.static("public"))  //pubic folder to save files
-
-
 
 import customerRouter from './routes/customer.routes.js'
 

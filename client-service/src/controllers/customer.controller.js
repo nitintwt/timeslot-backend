@@ -8,6 +8,7 @@ import nodemailer from 'nodemailer'
 import {Queue, tryCatch} from "bullmq"
 import dotenv from 'dotenv'
 import {z} from 'zod'
+import mongoose from "mongoose";
 
 dotenv.config({
   path:'./.env'
@@ -22,32 +23,53 @@ const emailQueue = new Queue("booking-email-queue" , {
   },
 })
 
-const emailSchema = z.string().email()
+const bookingSchema = z.object({
+  email: z.string().email(),
+  name: z
+    .string()
+    .min(3, "Name should be atleast 3 characters long")
+    .max(30 , "Name must be at most 30 characters long")
+    .regex(/^[a-zA-Z0-9_]+$/, "Name can only contain letters"),
+  reason: z
+    .string()
+    .min(10 , "Reason should be atleast 10 characters long")
+    .max(100, "Reason must be at most 100 characters long")
+    .regex(/^[a-zA-Z0-9_\- ]+$/, "Reason can only contain letters, numbers, underscores, hyphens, and spaces"),
+  slotId: z.string().refine((id)=> mongoose.isValidObjectId(id), {message: "Invalid slot ID"}),
+  slotCreator: z.string()
+})
+
+const emailSchema = z.object({
+  clientEmail: z.string().email(),
+  clientName: z
+    .string()
+    .min(3, "Name should be atleast 3 characters long")
+    .max(30 , "Name must be at most 30 characters long")
+    .regex(/^[a-zA-Z0-9_]+$/, "Name can only contain letters"),
+  slotId: z.string().refine((id)=> mongoose.isValidObjectId(id), {message: "Invalid slot ID"}),
+  meetLink: z.string()
+})
 
 const bookSlot = asyncHandler(async(req , res)=>{
-  const {email , name , reason ,  slotId , slotCreator}= req.body
-  
-  try {
-    emailSchema.parse(email)
-  } catch (error) {
-    return res.status(400).json(
-      new ApiError(400 , null , "Invalid email address")
-    )
+  const parseResult = bookingSchema.safeParse(req.body)
+
+  if (!parseResult.success) {
+    throw new ApiError(400 , parseResult.error.issues[0].message)
   }
 
-  if ([email , name , reason , slotId , slotCreator].some((field)=> field.trim()==="")){
-    throw new ApiError(400  , "All fields are required")
-  }
+  const {email , name , reason ,  slotId , slotCreator}= parseResult.data
   
-  const slot = await Slot.findById(slotId)
+  const slot = await Slot.findByIdAndUpdate(
+    slotId,
+    { status: 'booked' },
+    { new: true }
+  )
 
   if (!slot) {
     throw new ApiError(404, 'Slot not found');
   }
 
   try {
-    slot.status = 'booked';
-    await slot.save();
     const saveCustomerData = await Customer.create({
       customerEmail: email,
       customerName: name,
@@ -60,23 +82,28 @@ const bookSlot = asyncHandler(async(req , res)=>{
       new ApiResponse(201 , "Slot Booked Successfully")
     )
   } catch (error) {
-    return res.status(400).json(
-      new ApiError(400 , null , error , "Something went wrong while booking your slot")
-    )
+    console.error("Error booking slot:", error)
+    throw new ApiError(500 ,"Something went wrong while booking your slot")
   }
 })
 
 const sendEmail = asyncHandler (async (req, res)=>{
-  const {clientEmail , clientName , slotId , meetLink}= req.body
-  
-  await emailQueue.add(`${clientEmail}`, {clientEmail , clientName , slotId , meetLink})
-  
-  return res.status(200).json(
-    new ApiResponse(200 , "Email sent successfully")
-  )
+  const parseResult = emailSchema.safeParse(req.body)
 
+  if (!parseResult.success) {
+    throw new ApiError(400 , parseResult.error.issues[0].message)
+  }
+  const {clientEmail , clientName , slotId , meetLink}= parseResult.data
+
+  try {
+    await emailQueue.add(`${clientEmail}`, {clientEmail , clientName , slotId , meetLink})
+
+    return res.status(200).json(
+      new ApiResponse(200 , "Email sent successfully")
+    )
+  } catch (error) {
+    console.error("Something went wrong while sending email" , error)
+  }
 })
-
-
 
 export  {bookSlot , sendEmail}
