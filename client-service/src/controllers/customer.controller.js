@@ -1,7 +1,6 @@
 import { Customer } from "../models/customer.model.js";
 import { Slot } from "../models/slot.model.js";
 import { User } from "../models/user.model.js";
-import { ApiError } from '../utils/ApiError.js'
 import { ApiResponse } from '../utils/ApiResponse.js'
 import {asyncHandler} from '../utils/asyncHandler.js'
 import nodemailer from 'nodemailer'
@@ -29,12 +28,12 @@ const bookingSchema = z.object({
     .string()
     .min(3, "Name should be atleast 3 characters long")
     .max(30 , "Name must be at most 30 characters long")
-    .regex(/^[a-zA-Z0-9_]+$/, "Name can only contain letters"),
+    .regex(/^[a-zA-Z\s\-']+$/, "Name can only contain letters"),
   reason: z
     .string()
     .min(10 , "Reason should be atleast 10 characters long")
-    .max(100, "Reason must be at most 100 characters long")
-    .regex(/^[a-zA-Z0-9_\- ]+$/, "Reason can only contain letters, numbers, underscores, hyphens, and spaces"),
+    .max(500, "Reason must be at most 500 characters long")
+    .regex(/^[a-zA-Z0-9\s\-']+$/, "Reason can only contain letters, numbers, underscores, hyphens, and spaces"),
   slotId: z.string().refine((id)=> mongoose.isValidObjectId(id), {message: "Invalid slot ID"}),
   slotCreator: z.string()
 })
@@ -45,7 +44,7 @@ const emailSchema = z.object({
     .string()
     .min(3, "Name should be atleast 3 characters long")
     .max(30 , "Name must be at most 30 characters long")
-    .regex(/^[a-zA-Z0-9_]+$/, "Name can only contain letters"),
+    .regex(/^[a-zA-Z\s\-']+$/, "Name can only contain letters"),
   slotId: z.string().refine((id)=> mongoose.isValidObjectId(id), {message: "Invalid slot ID"}),
   meetLink: z.string()
 })

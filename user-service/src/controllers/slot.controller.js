@@ -1,10 +1,9 @@
-import { ApiError } from '../utils/ApiError.js'
 import { ApiResponse } from '../utils/ApiResponse.js'
 import {asyncHandler} from '../utils/asyncHandler.js'
 import { Customer } from "../models/customer.model.js";
 import { Slot } from "../models/slot.model.js";
 import { User } from "../models/user.model.js";
-import {Queue, tryCatch} from "bullmq"
+import {Queue} from "bullmq"
 import dotenv from 'dotenv'
 import mongoose from 'mongoose';
 
@@ -30,13 +29,13 @@ const createSlot = asyncHandler( async(req , res)=>{
     )
   }
 
-  const creator = slots?.[0]?.creator
-
-   if (!mongoose.isValidObjectId(userDbId)){
+   if (!mongoose.isValidObjectId(slots?.[0]?.creator)){
     return res.status(400).json(
       {message:"Invalid user ID"}
     )
    }
+
+   const creator = slots?.[0]?.creator
 
   const user = await User.findById(creator)
     if(!user){

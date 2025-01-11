@@ -1,7 +1,6 @@
 import { Slot } from "../models/slot.model.js";
 import { User } from "../models/user.model.js";
 import { Customer } from "../models/customer.model.js";
-import { ApiError } from '../utils/ApiError.js'
 import { ApiResponse } from '../utils/ApiResponse.js'
 import {asyncHandler} from '../utils/asyncHandler.js'
 import {z} from "zod"
@@ -37,7 +36,7 @@ const getUserDetails = asyncHandler (async (req , res)=>{
         "-password -refreshToken"
       )
       if (!user) {
-        return res.status(404).json(new ApiResponse(404, null, "User not found"));
+        return res.status(404).json({message:"User not found"});
       }
       // Cache the user data in redis and set an expiration time of 5 minutes
       /*await client.set(userDbId , JSON.stringify(user))
@@ -72,7 +71,7 @@ const setUsername = asyncHandler(async (req, res) => {
 
     const existingUsername = await User.findOne({ userName: username })
     if (existingUsername) {
-      return res.status(409).json(new ApiResponse(409, "Username already exists"));
+      return res.status(409).json({message:"Username already exist"})
     }
 
     user.userName = username
@@ -154,9 +153,11 @@ const totalRevenueofLast28Days = asyncHandler (async (req , res)=>{
 const getCustomerData = asyncHandler(async (req , res)=>{
   const slotId= req.query.slotId
 
-  if(!mongoose.isValidObjectId(slotId)){
-    throw new ApiError(401, "Invalid user id")
-  }
+  if (!mongoose.isValidObjectId(slotId)){
+    return res.status(400).json(
+      {message:"Invalid slot ID"}
+    )
+   }
 
   try {
     const customer = await Customer.findOne({slot:slotId})

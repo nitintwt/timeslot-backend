@@ -7,7 +7,6 @@ import { User } from '../models/user.model.js'
 
 const razorpayInstance = createRazorpayInstance()
 
-
 const createOrder = asyncHandler (async (req , res)=>{
   const {subscriptionId}= req.body
   let amount = 0;
@@ -38,7 +37,6 @@ const createOrder = asyncHandler (async (req , res)=>{
     throw new ApiError(500 , error , "Something went wrong")
   }
 })
-
 
 const verifyPayment = asyncHandler (async ( req , res)=>{
   const {orderId , paymentId , signature , userId}= req.body
