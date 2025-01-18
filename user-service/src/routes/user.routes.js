@@ -3,11 +3,11 @@ import { getAllCustomersData, getCustomerData, getUserDetails, setUsername, tota
 import verifyAuth from "../middlewares/auth.middleware.js";
 const userRouter = Router()
 
-userRouter.route("/userDetails").get(verifyAuth , getUserDetails)
-userRouter.route("/setUsername").post( verifyAuth ,setUsername)
-userRouter.route("/totalNumberOfMeetingsOfLast28Days").get( verifyAuth ,totalNumberOfMeetingsOfLast28Days)
-userRouter.route("/totalRevenueOfLast28Days").get(verifyAuth , totalRevenueofLast28Days)
-userRouter.route("/customerData").get(verifyAuth ,getCustomerData)
-userRouter.route("/allCustomersData").get(verifyAuth ,getAllCustomersData)
+userRouter.route("/userDetails").get(getUserDetails)
+userRouter.route("/setUsername").post(setUsername)
+userRouter.route("/totalNumberOfMeetingsOfLast28Days").get(totalNumberOfMeetingsOfLast28Days)
+userRouter.route("/totalRevenueOfLast28Days").get(totalRevenueofLast28Days)
+userRouter.route("/customerData").get(getCustomerData)
+userRouter.route("/allCustomersData").get(getAllCustomersData)
 
 export default userRouter

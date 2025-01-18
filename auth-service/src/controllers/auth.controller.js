@@ -77,6 +77,7 @@ const registerUser = asyncHandler (async (req , res)=>{
       )
     }
   
+
     return res.status(201).json(
       new ApiResponse(200, createdUser , "User registered Successfully")
     )
@@ -123,10 +124,12 @@ const loginUser = asyncHandler ( async (req , res)=>{
     //initially cookies can be modified by any one in frontend , to make it only modified only by server , we have to do  httpOnly true and secure true 
     const options = {
       httpOnly : true,
-      secure: true,
-      sameSite:"strict"
+      secure: false,
+      sameSite:"none",
+      domain: "*.timeslot.co.in",
+      path: "/"
     }
-  
+
     return res.
     status(200)
     .cookie("accessToken", accessToken , options)
@@ -134,7 +137,7 @@ const loginUser = asyncHandler ( async (req , res)=>{
     .json( new ApiResponse(
       200 ,
       {
-        user: loggedInUser , accessToken , refreshToken
+        user: loggedInUser
       },
       "User logged in successfully"
     ))

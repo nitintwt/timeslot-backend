@@ -27,14 +27,14 @@ const createOrder = asyncHandler (async (req , res)=>{
   try {
      razorpayInstance.orders.create(options, (err, order)=>{
       if(err){
-        throw new ApiError(500 , err , "Something went wrong.")
+        return res.status(500).json({message:"Something went wrong"})
       }
       return res.status(200).json(
         new ApiResponse(200 , order , "Successfully created your order" )
       )
     } )
   } catch (error) {
-    throw new ApiError(500 , error , "Something went wrong")
+    return res.status(500).json({message:"Something went wrong"})
   }
 })
 
