@@ -92,4 +92,43 @@ const cancelationEmailWorker = new Worker('cancelation-email-queue' , async (job
   }
 })
 
-export {emailWorker , cancelationEmailWorker}
+const subemailWorker = new Worker("subtrack-email-queue", async(job)=>{
+  const data = job.data
+  console.log("Job" , data)
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      }
+    })
+
+    const mailConfigs = {
+      from: process.env.EMAIL_USER,
+      to: "ns809203@gmail.com",
+      subject: `Renewal of your ${data.service} subscription`,
+      text: `Hello ${data.name}.`
+    }
+
+    await transporter.sendMail(mailConfigs)
+    console.log(`Email sent successfully for Job ID: ${job.id}`);
+
+  } catch (error) {
+    console.error(`Error in Job ID ${job.id}:`, error)
+  }
+
+},{
+  connection:{
+    host:process.env.AIVEN_HOST,
+    port:26644,
+    username:process.env.AIVEN_USERNAME,
+    password:process.env.AIVEN_PASSWORD ,
+  },
+  limiter: {
+    max: 50,
+    duration: 10 * 1000
+  }
+})
+
+export {emailWorker , cancelationEmailWorker , subemailWorker}
